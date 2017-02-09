@@ -187,14 +187,27 @@ public class MeshCreator: MonoBehaviour {
         m_Mesh.RecalculateNormals();
     }
 
-    public byte GetBlockType(int p_X, int p_Y) {
+    private byte GetBlockType(int p_X, int p_Y) {
         if (p_X <= -1 || p_X >= Blocks.GetLength(0) || p_Y <= -1 || p_Y >= Blocks.GetLength(1)) return (int)MAP_TYPE.EMPTY;
         return Blocks[p_X, p_Y];
     }
 
     public void DestroyBlock(int p_X, int p_Y) {
+        if (GetBlockType(p_X, p_Y) == (int)MAP_TYPE.EMPTY) return;
         Blocks[p_X, p_Y] = (int)MAP_TYPE.EMPTY;
         UpdateMap();
+    }
+
+
+    public void DestroyBlockAt(Vector3 p_Pos)
+    {
+        Vector2 l_BlockPos = new Vector2(Mathf.Floor(p_Pos.x), Mathf.Ceil(p_Pos.y));
+        if (GetBlockType((int)l_BlockPos.x, (int)l_BlockPos.y) > 0)
+        {
+            Blocks[(int)l_BlockPos.x, (int)l_BlockPos.y] = (int)MAP_TYPE.EMPTY;
+            UpdateMap();
+            //GenerateCollision((int)l_BlockPos.x, (int)l_BlockPos.y);
+        }
     }
     #endregion
 }
