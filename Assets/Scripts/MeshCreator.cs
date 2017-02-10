@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class MeshCreator: MonoBehaviour {
     #region Variables
     private const float UNIT_TEXTURE = 0.0625f;
@@ -37,15 +38,18 @@ public class MeshCreator: MonoBehaviour {
         m_ColVertices   = new List<Vector3>();
         m_ColTriangles  = new List<int>();
         m_Textures      = new Dictionary<MAP_TYPE, Vector2>();
-        m_Textures.Add(MAP_TYPE.GRASS, new Vector2(2, 6));
-        m_Textures.Add(MAP_TYPE.STONE, new Vector2(1, 5));
-
-        GenerateMap();
-        UpdateMap();
     }
     #endregion
 
     #region Map Managment
+    public void BuildMap(Vector2 p_Texture1, Vector2 p_Texture2) {
+        m_Textures.Clear();
+        m_Textures.Add(MAP_TYPE.GRASS, p_Texture1);
+        m_Textures.Add(MAP_TYPE.STONE, p_Texture2);
+        GenerateMap();
+        UpdateMap();
+    }
+
     private void UpdateMap() {
         ConstructMesh();
         GenerateMesh();
