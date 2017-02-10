@@ -17,12 +17,10 @@ public class MeshCreatorEditor : Editor {
         base.OnInspectorGUI();
         MeshCreator l_MeshCreator = (MeshCreator)target;
 
-        if (m_Texture1 != null && m_Texture2 != null)
-        {
+        if (m_Texture1 != null && m_Texture2 != null) {
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Generate World"))
-            {
-                l_MeshCreator.MapGeneration(m_Texture1, m_Texture2);
+            if (GUILayout.Button("Generate World")) {
+                l_MeshCreator.BuildMap(m_Texture1, m_Texture2);
             }
             EditorGUILayout.EndHorizontal();
         }
