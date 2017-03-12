@@ -13,13 +13,15 @@ public class MeshCreator: MonoBehaviour {
     private MeshCollider m_Collider;
     private List<Vector3> m_ColVertices;
     private List<int> m_ColTriangles;
-    private Dictionary<MAP_TYPE, Vector2> m_Textures;
 
     [Range(30, 100)]
     public int MapSize_X;
     [Range(30, 100)]
     public int MapSize_Y;
-    public byte[,] Blocks;
+
+    public List<Vector2> m_Pos;
+    public List<MAP_TYPE> m_Type;
+    public List<Vector2> m_Text;
 
     public enum MAP_TYPE {
         EMPTY,
@@ -30,22 +32,24 @@ public class MeshCreator: MonoBehaviour {
 
     #region Initialisation & Destroy
     void Start() {
-        m_Mesh          = gameObject.GetComponent<MeshFilter>().mesh;
+        m_Mesh          = gameObject.GetComponent<MeshFilter>().sharedMesh;
         m_Vertices      = new List<Vector3>();
         m_Triangles     = new List<int>();
         m_UV            = new List<Vector2>();
         m_Collider      = gameObject.GetComponent<MeshCollider>();
         m_ColVertices   = new List<Vector3>();
         m_ColTriangles  = new List<int>();
-        m_Textures      = new Dictionary<MAP_TYPE, Vector2>();
     }
     #endregion
 
     #region Map Managment
     public void BuildMap(Vector2 p_Texture1, Vector2 p_Texture2) {
-        m_Textures.Clear();
-        m_Textures.Add(MAP_TYPE.GRASS, p_Texture1);
-        m_Textures.Add(MAP_TYPE.STONE, p_Texture2);
+        if (m_Text != null) m_Text.Clear();
+        else m_Text = new List<Vector2>();
+        m_Text.Add(Vector2.zero);
+        m_Text.Add(p_Texture1);
+        m_Text.Add(p_Texture2);
+
         GenerateMap();
         UpdateMap();
     }
@@ -56,9 +60,10 @@ public class MeshCreator: MonoBehaviour {
     }
 
     private void GenerateMap() {
-        Blocks = new byte[MapSize_X, MapSize_Y * 2];
+        m_Pos   = new List<Vector2>();
+        m_Type  = new List<MAP_TYPE>();
 
-        for (int cptX = 0; cptX < Blocks.GetLength(0); cptX++) {
+        for (int cptX = 0; cptX < MapSize_X; cptX++) {
             int l_Stone     = GetNoise(cptX, 0, MapSize_Y * 0.8f, 15);
             l_Stone         += GetNoise(cptX, 0, MapSize_Y * 0.4f, 30);
             l_Stone         += GetNoise(cptX, 0, MapSize_Y * 0.1f, 10);
@@ -68,13 +73,19 @@ public class MeshCreator: MonoBehaviour {
             l_Dirt      += GetNoise(cptX, (int)(MapSize_Y * 0.75f), MapSize_Y / 2, 30);
             l_Dirt      += (int)(MapSize_Y * 0.75f);
 
-            for (int cptY = 0; cptY < Blocks.GetLength(1); cptY++) {
+            for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
                 if (cptY < l_Stone) {
-                    if (GetNoise(cptX, cptY, 14, 16) > 10) Blocks[cptX, cptY] = (int)MAP_TYPE.GRASS;
-                    else if (GetNoise(cptX, cptY * 2, 14, 16) > 10) Blocks[cptX, cptY] = (int)MAP_TYPE.EMPTY;
-                    else Blocks[cptX, cptY] = (int)MAP_TYPE.STONE;
+                    m_Pos.Add(new Vector2(cptX, cptY));
+
+                    if (GetNoise(cptX, cptY, 14, 16) > 10) m_Type.Add(MAP_TYPE.GRASS);
+                    else if (GetNoise(cptX, cptY * 2, 14, 16) > 10) m_Type.Add(MAP_TYPE.EMPTY);
+                    else m_Type.Add(MAP_TYPE.STONE);
+
                 }
-                else if (cptY < l_Dirt) Blocks[cptX, cptY] = (int)MAP_TYPE.GRASS;
+                else if (cptY < l_Dirt) {
+                    m_Pos.Add(new Vector2(cptX, cptY));
+                    m_Type.Add(MAP_TYPE.GRASS);
+                }
             }
         }
     }
@@ -84,11 +95,11 @@ public class MeshCreator: MonoBehaviour {
     }
 
     private void ConstructMesh() {
-        for (int cptX = 0; cptX < Blocks.GetLength(0); cptX++) {
-            for (int cptY = 0; cptY < Blocks.GetLength(1); cptY++) {
-                if (GetBlockType(cptX, cptY) != (int)MAP_TYPE.EMPTY) {
+        for (int cptX = 0; cptX < MapSize_X; cptX++) {
+            for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
+                if (GetBlockType(cptX, cptY) != MAP_TYPE.EMPTY) {
                     BuildCollider(cptX, cptY);
-                    BuildMesh(cptX, cptY, m_Textures[(MAP_TYPE)GetBlockType(cptX, cptY)]);
+                    BuildMesh(cptX, cptY, m_Text[(int)GetBlockType(cptX, cptY)]);
                 }
             }
         }
@@ -99,7 +110,7 @@ public class MeshCreator: MonoBehaviour {
 
     private void BuildCollider(int p_X, int p_Y) {
         #region TOP
-        if (GetBlockType(p_X, p_Y + 1) == (int)MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X, p_Y + 1) == MAP_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 0));
@@ -108,7 +119,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region BOTTOM
-        if (GetBlockType(p_X, p_Y - 1) == (int)MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X, p_Y - 1) == MAP_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y - 1, 0));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 0));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 1));
@@ -117,7 +128,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region LEFT
-        if (GetBlockType(p_X - 1, p_Y) == (int)MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X - 1, p_Y) == MAP_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y - 1, 1));
             m_ColVertices.Add(new Vector3(p_X, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X, p_Y, 0));
@@ -126,7 +137,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region RIGHT
-        if (GetBlockType(p_X + 1, p_Y) == (int)MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X + 1, p_Y) == MAP_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 0));
@@ -191,26 +202,21 @@ public class MeshCreator: MonoBehaviour {
         m_Mesh.RecalculateNormals();
     }
 
-    private byte GetBlockType(int p_X, int p_Y) {
-        if (p_X <= -1 || p_X >= Blocks.GetLength(0) || p_Y <= -1 || p_Y >= Blocks.GetLength(1)) return (int)MAP_TYPE.EMPTY;
-        return Blocks[p_X, p_Y];
+    private MAP_TYPE GetBlockType(int p_X, int p_Y) {
+        if (p_X <= -1 || p_X >= MapSize_X || p_Y <= -1 || p_Y >= MapSize_Y * 2) return MAP_TYPE.EMPTY;
+        else {
+            int l_Index = m_Pos.IndexOf(new Vector2(p_X, p_Y));
+
+            return (l_Index != -1) ? m_Type[l_Index] : MAP_TYPE.EMPTY;
+        }
     }
 
-    public void DestroyBlock(int p_X, int p_Y) {
-        if (GetBlockType(p_X, p_Y) == (int)MAP_TYPE.EMPTY) return;
-        Blocks[p_X, p_Y] = (int)MAP_TYPE.EMPTY;
-        UpdateMap();
-    }
+    public void DestroyBlockAt(Vector3 p_Pos) {
+        Vector2 l_Vec = new Vector2(Mathf.Floor(p_Pos.x), Mathf.Ceil(p_Pos.y));
 
-
-    public void DestroyBlockAt(Vector3 p_Pos)
-    {
-        Vector2 l_BlockPos = new Vector2(Mathf.Floor(p_Pos.x), Mathf.Ceil(p_Pos.y));
-        if (GetBlockType((int)l_BlockPos.x, (int)l_BlockPos.y) > 0)
-        {
-            Blocks[(int)l_BlockPos.x, (int)l_BlockPos.y] = (int)MAP_TYPE.EMPTY;
+        if (GetBlockType((int)l_Vec.x, (int)l_Vec.y) != MAP_TYPE.EMPTY) {
+            m_Type[m_Pos.IndexOf(l_Vec)] = MAP_TYPE.EMPTY;
             UpdateMap();
-            //GenerateCollision((int)l_BlockPos.x, (int)l_BlockPos.y);
         }
     }
     #endregion
