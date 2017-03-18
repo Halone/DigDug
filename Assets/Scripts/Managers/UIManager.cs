@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class UIManager : BaseManager<UIManager> {
@@ -26,9 +27,14 @@ public class UIManager : BaseManager<UIManager> {
     [Header("HUD_Elem")]
     public Text HUD_Score;
 
+    [Header("Leaderboard_Elem")]
+    public Text Leaderboard_DispayName;
+    public Text Leaderboard_DispayScore;
+
     [Header("EndScreen_Elem")]
     public Text End_Title;
     public Text End_Score;
+    public Text End_NewName;
     public GameObject AddNewHighScorePanel;
     #endregion
     #endregion
@@ -59,9 +65,9 @@ public class UIManager : BaseManager<UIManager> {
     #endregion
 
     #region UIManagement
-    public void UpdateScore(int ScoreIncrement = 1)
+    public void UpdateScore(int p_ScoreIncrement = 1)
     {
-        m_Score += ScoreIncrement;
+        m_Score += p_ScoreIncrement;
 
         HUD_Score.text = "Score: " + m_Score;
     }
@@ -78,7 +84,7 @@ public class UIManager : BaseManager<UIManager> {
         End_Title.text = (p_Win) ? "You Win" :"You Loose";
         End_Score.text = m_Score.ToString();
 
-        AddNewHighScorePanel.SetActive(m_Score > 5/*lowestHighScore*/);
+        AddNewHighScorePanel.SetActive(SaveManager.instance.IsNewHighscore(m_Score) && p_Win);
 
         ChangeScreen(EndScreen);
     }
@@ -96,6 +102,10 @@ public class UIManager : BaseManager<UIManager> {
         if (onShowLeaderboard != null)
             onShowLeaderboard.Invoke();
 
+        KeyValuePair<string, string> l_LeaderboardFormattedData = SaveManager.instance.GetFormattedLeaderboard();
+        Leaderboard_DispayName.text = l_LeaderboardFormattedData.Key;
+        Leaderboard_DispayScore.text = l_LeaderboardFormattedData.Value;
+
         ChangeScreen(LeaderboardScreen);
     }
 
@@ -109,6 +119,8 @@ public class UIManager : BaseManager<UIManager> {
 
     public void OnClickSubmitNewScore()
     {
+        SaveManager.instance.AddNewHighScore(m_Score, End_NewName.text);
+
         if (onBackToMainMenu != null)
             onBackToMainMenu.Invoke();
 
