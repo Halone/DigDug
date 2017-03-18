@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Player : MonoBehaviour {
-
-    public MeshCreator l_World;
+    public MeshCreator world;
 
     [SerializeField]
     private float m_Speed_X;
     private Rigidbody m_Rigid;
     private float m_MoveThreshold = 0.1f;
 
-    private void Start()
-    {
+    private void Start() {
         m_Rigid = GetComponent<Rigidbody>();
     }
 
@@ -35,16 +32,12 @@ public class Player : MonoBehaviour {
             l_World.DestroyBlockAt(transform.position + Vector3.up);
     }*/
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("World"))
-            if (Input.GetKey("down"))
-                l_World.DestroyBlockAt(transform.position + Vector3.down);
-            if (Input.GetKey("right"))
-                l_World.DestroyBlockAt(transform.position + Vector3.right);
-            if (Input.GetKey("left"))
-                l_World.DestroyBlockAt(transform.position + Vector3.left);
-            if (Input.GetKey("up"))
-                l_World.DestroyBlockAt(transform.position + Vector3.up);
+    private void OnTriggerEnter(Collider other) {
+        if (other.CompareTag("World")) {
+            if (Input.GetKey("down")) world.DestroyBlockAt(transform.position + Vector3.down);
+            if (Input.GetKey("right")) world.DestroyBlockAt(transform.position + Vector3.right);
+            if (Input.GetKey("left")) world.DestroyBlockAt(transform.position + Vector3.left);
+            if (Input.GetKey("up")) world.DestroyBlockAt(transform.position + Vector3.up);
+        }
     }
 }

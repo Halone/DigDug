@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 [CustomEditor(typeof(MeshCreator))]
@@ -12,9 +11,9 @@ public class MeshCreatorEditor : Editor {
     Vector2 m_Texture1;
     Vector2 m_Texture2;
 
-    public override void OnInspectorGUI()
-    {
+    public override void OnInspectorGUI() {
         base.OnInspectorGUI();
+
         MeshCreator l_MeshCreator = (MeshCreator)target;
 
         if (m_Texture1 != null && m_Texture2 != null) {
@@ -26,18 +25,13 @@ public class MeshCreatorEditor : Editor {
         }
 
         l_Foldout = EditorGUILayout.Foldout(l_Foldout, "Textures");
-        if (l_Foldout)
-        {
+        if (l_Foldout) {
             EditorGUILayout.BeginHorizontal();
             int count = 0;
-            for(int i = 0; i < m_Textures.Count; i++)
-            {
-                if (GUILayout.Button(m_Textures[i]))
-                {
-                    if (countTexture % 2 == 0)
-                        m_Texture1 = new Vector2(Mathf.Floor(i/16), (i % 16));
-                    else if (countTexture % 2 == 1)
-                        m_Texture2 = new Vector2(Mathf.Floor(i / 16), (i % 16));
+            for (int i = 0; i < m_Textures.Count; i++) {
+                if (GUILayout.Button(m_Textures[i])) {
+                    if (countTexture % 2 == 0) m_Texture1 = new Vector2(Mathf.Floor(i/16), (i % 16));
+                    else if (countTexture % 2 == 1) m_Texture2 = new Vector2(Mathf.Floor(i / 16), (i % 16));
                     countTexture++;
                 }
                 if (count % NbrTexturePerLine == 1)
@@ -49,10 +43,8 @@ public class MeshCreatorEditor : Editor {
             }
             EditorGUILayout.EndHorizontal();
         }
-        
 
-        if (m_Textures.Count == 0)
-            FillTexture(l_MeshCreator);
+        if (m_Textures.Count == 0) FillTexture(l_MeshCreator);
     }
 
     private void FillTexture(MeshCreator p_Instance)
@@ -60,7 +52,7 @@ public class MeshCreatorEditor : Editor {
         MeshRenderer l_MeshRenderer = p_Instance.GetComponent<MeshRenderer>();
         if (l_MeshRenderer != null)
         {
-            Texture2D l_Texture = l_MeshRenderer.material.mainTexture as Texture2D;
+            Texture2D l_Texture = l_MeshRenderer.sharedMaterial.mainTexture as Texture2D;
             if (l_Texture != null)
             {
                 int l_Width = l_Texture.width;
