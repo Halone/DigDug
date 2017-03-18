@@ -12,8 +12,8 @@ public class GameManager: Singleton<GameManager> {
 
     #region Initialisation & Destroy
     protected override IEnumerator CoroutineStart() {
-        //while (MenuManager.instance == null) yield return false;
-        //while (!MenuManager.instance.isReady) yield return false;
+        while (UIManager.instance == null) yield return false;
+        while (!UIManager.instance.isReady) yield return false;
         Init();
 
         //while (!MenuManager.instance.isInit) yield return false;
@@ -35,6 +35,8 @@ public class GameManager: Singleton<GameManager> {
 
     #region Game Events
     private void Init() {
+        UIManager.instance.onStartGame += Play;
+
         if (onInit != null) onInit();
     }
 
