@@ -2,8 +2,9 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Collections;
+using System;
 
-public class UIManager : MonoBehaviour {
+public class UIManager : BaseManager<UIManager> {
     #region Variables
     private GameObject m_CurrentScreen;
     private int m_Score;
@@ -19,6 +20,7 @@ public class UIManager : MonoBehaviour {
     public GameObject MainScreen;
     public GameObject EndScreen;
     public GameObject LeaderboardScreen;
+    public GameObject HUD;
     #endregion
     #region EndScreen
     [Header("EndScreenElem")]
@@ -28,7 +30,16 @@ public class UIManager : MonoBehaviour {
     #endregion
 
     // Use this for initialization
-    void Start () {
+    protected override IEnumerator CoroutineStart()
+    {
+        yield return true;
+
+        isReady = true;
+    }
+
+    protected override void Menu()
+    {
+        base.Menu();
         ChangeScreen(MainScreen);
     }
 
