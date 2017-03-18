@@ -192,6 +192,8 @@ public class MeshCreator: MonoBehaviour {
     }
 
     private byte GetBlockType(int p_X, int p_Y) {
+        print(Blocks);
+        print(Blocks.Length);
         if (p_X <= -1 || p_X >= Blocks.GetLength(0) || p_Y <= -1 || p_Y >= Blocks.GetLength(1)) return (int)MAP_TYPE.EMPTY;
         return Blocks[p_X, p_Y];
     }
