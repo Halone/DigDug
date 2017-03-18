@@ -67,8 +67,7 @@ public class UIManager : BaseManager<UIManager> {
         if(onStartGame != null)
             onStartGame.Invoke();
 
-        m_CurrentScreen.SetActive(false);
-        m_CurrentScreen = null;
+        ChangeScreen(HUD);
     }
 
     public void OnClickShowLeaderboard()
