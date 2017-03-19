@@ -228,7 +228,7 @@ public class MeshCreator: MonoBehaviour {
 
         #region Sizes
         l_JsonLevel.AddField(FIELD_SIZE_X, MapSize_X);
-        l_JsonLevel.AddField(FIELD_SIZE_Y, MapSize_Y);
+        l_JsonLevel.AddField(FIELD_SIZE_Y, MapSize_Y * 2);
         #endregion
 
         #region Map

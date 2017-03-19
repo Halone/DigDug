@@ -12,31 +12,36 @@ public class GameManager: Singleton<GameManager> {
 
     #region Initialisation & Destroy
     protected override IEnumerator CoroutineStart() {
-        while (UIManager.instance == null && SaveManager.instance == null) yield return false;
-        while (!UIManager.instance.isReady && !SaveManager.instance.isReady) yield return false;
+        while (
+            UIManager.instance == null && 
+            ScoreManager.instance == null &&
+            LevelManager.instance == null
+        ) yield return false;
+
+        while (
+            !UIManager.instance.isReady && 
+            !ScoreManager.instance.isReady &&
+            !LevelManager.instance.isReady
+        ) yield return false;
+
         Init();
 
-        //while (!MenuManager.instance.isInit) yield return false;
+        while (
+            !UIManager.instance.isInit &&
+            !ScoreManager.instance.isInit &&
+            !LevelManager.instance.isInit
+        ) yield return false;
+
+        UIManager.instance.onStartGame += Play;
         Menu();
 
         yield return true;
-    }
-
-    protected override void Destroy() {
-        onInit  = null;
-        onMenu  = null;
-        onPlay  = null;
-        onLoose = null;
-        onWin   = null;
-
-        base.Destroy();
+        isReady = true;
     }
     #endregion
 
     #region Game Events
     private void Init() {
-        UIManager.instance.onStartGame += Play;
-
         if (onInit != null) onInit();
     }
 
