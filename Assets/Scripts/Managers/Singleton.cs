@@ -14,7 +14,7 @@ public abstract class Singleton<T>: MonoBehaviour where T: Component {
     }
     #endregion
 
-    #region Initialisation & Destroy
+    #region Initialisation
     protected virtual void Awake() {
         if (instance != null) Destroy(instance.gameObject);
         instance = this as T;
@@ -25,9 +25,5 @@ public abstract class Singleton<T>: MonoBehaviour where T: Component {
     }
 
     protected abstract IEnumerator CoroutineStart();
-
-    protected virtual void Destroy() {
-        instance = null;
-    }
     #endregion
 }

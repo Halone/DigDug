@@ -8,7 +8,7 @@ public abstract class BaseManager<T>: Singleton<T> where T: Component {
     }
     #endregion
 
-    #region Initialisation & Destroy
+    #region Initialisation
     protected override void Start() {
         if (GameManager.instance) {
             GameManager.instance.onInit     += Init;
@@ -20,18 +20,6 @@ public abstract class BaseManager<T>: Singleton<T> where T: Component {
         else Debug.LogError("GameManager does not exist.");
 
         base.Start();
-    }
-
-    protected override void Destroy() {
-        if (GameManager.instance) {
-            GameManager.instance.onInit     -= Init;
-            GameManager.instance.onMenu     -= Menu;
-            GameManager.instance.onPlay     -= Play;
-            GameManager.instance.onLoose    -= Loose;
-            GameManager.instance.onWin      -= Win;
-        }
-
-        base.Destroy();
     }
     #endregion
 
