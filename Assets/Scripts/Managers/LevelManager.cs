@@ -24,6 +24,7 @@ public class LevelManager: BaseManager<LevelManager> {
     private List<Vector2> m_UV;
     private List<Vector3> m_VerticesCollider;
     private List<int> m_TrianglesCollider;
+    private Mesh m_World;
     #endregion
 
     #region Initialisation
@@ -35,6 +36,7 @@ public class LevelManager: BaseManager<LevelManager> {
         m_UV                = new List<Vector2>();
         m_VerticesCollider  = new List<Vector3>();
         m_TrianglesCollider = new List<int>();
+        m_World             = gameObject.transform.GetChild(0).GetComponent<MeshFilter>().mesh;
 
         yield return true;
         isReady = true;
@@ -49,6 +51,7 @@ public class LevelManager: BaseManager<LevelManager> {
     protected override void Play() {
         InitLevel();
         CreatView();
+        GenerateMesh();
     }
 
     #region Map Managment
@@ -106,7 +109,7 @@ public class LevelManager: BaseManager<LevelManager> {
                     BuildVerticesMesh(cptColumn, cptLine);
                     BuildUV(m_Textures[l_Type]);
                     BuildTrianglesMesh(cptTile);
-                    cptTile++;
+                    cptTile += 4;
                 }
             }
         }
@@ -133,6 +136,17 @@ public class LevelManager: BaseManager<LevelManager> {
         m_TrianglesMesh.Add(p_Iteration + 1);
         m_TrianglesMesh.Add(p_Iteration + 2);
         m_TrianglesMesh.Add(p_Iteration + 3);
+    }
+
+    private void GenerateMesh() {
+        m_World.Clear();
+
+        m_World.vertices    = m_VerticesMesh.ToArray();
+        m_World.triangles   = m_TrianglesMesh.ToArray();
+        m_World.uv          = m_UV.ToArray();
+
+        m_World.Optimize();
+        m_World.RecalculateNormals();
     }
     #endregion
 
