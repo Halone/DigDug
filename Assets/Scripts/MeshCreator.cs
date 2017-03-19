@@ -1,10 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class MeshCreator: MonoBehaviour {
     #region Variables
-    private const float UNIT_TEXTURE = 0.0625f;
+    private const string PATH_JSON          = "";
+    private const string NAME_FILE_LEVEL    = "level";
+    private const string FIELD_SIZE_X       = "size_X";
+    private const string FIELD_SIZE_Y       = "size_Y";
+    private const string FIELD_MAP          = "map";
+    private const string FIELD_POS          = "position";
+    private const string FIELD_TYPE         = "type";
+    private const string FIELD_TEXTURES     = "textures";
+    private const float UNIT_TEXTURE        = 0.0625f;
 
     private Mesh m_Mesh;
     private List<Vector3> m_Vertices;
@@ -20,14 +29,8 @@ public class MeshCreator: MonoBehaviour {
     public int MapSize_Y;
 
     public List<Vector2> m_Pos;
-    public List<MAP_TYPE> m_Type;
+    public List<TILE_TYPE> m_Type;
     public List<Vector2> m_Text;
-
-    public enum MAP_TYPE {
-        EMPTY,
-        GRASS,
-        STONE
-    }
     #endregion
 
     #region Initialisation & Destroy
@@ -61,7 +64,7 @@ public class MeshCreator: MonoBehaviour {
 
     private void GenerateMap() {
         m_Pos   = new List<Vector2>();
-        m_Type  = new List<MAP_TYPE>();
+        m_Type  = new List<TILE_TYPE>();
 
         for (int cptX = 0; cptX < MapSize_X; cptX++) {
             int l_Stone     = GetNoise(cptX, 0, MapSize_Y * 0.8f, 15);
@@ -77,14 +80,14 @@ public class MeshCreator: MonoBehaviour {
                 if (cptY < l_Stone) {
                     m_Pos.Add(new Vector2(cptX, cptY));
 
-                    if (GetNoise(cptX, cptY, 14, 16) > 10) m_Type.Add(MAP_TYPE.GRASS);
-                    else if (GetNoise(cptX, cptY * 2, 14, 16) > 10) m_Type.Add(MAP_TYPE.EMPTY);
-                    else m_Type.Add(MAP_TYPE.STONE);
+                    if (GetNoise(cptX, cptY, 14, 16) > 10) m_Type.Add(TILE_TYPE.GRASS);
+                    else if (GetNoise(cptX, cptY * 2, 14, 16) > 10) m_Type.Add(TILE_TYPE.EMPTY);
+                    else m_Type.Add(TILE_TYPE.STONE);
 
                 }
                 else if (cptY < l_Dirt) {
                     m_Pos.Add(new Vector2(cptX, cptY));
-                    m_Type.Add(MAP_TYPE.GRASS);
+                    m_Type.Add(TILE_TYPE.GRASS);
                 }
             }
         }
@@ -97,7 +100,7 @@ public class MeshCreator: MonoBehaviour {
     private void ConstructMesh() {
         for (int cptX = 0; cptX < MapSize_X; cptX++) {
             for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
-                if (GetBlockType(cptX, cptY) != MAP_TYPE.EMPTY) {
+                if (GetBlockType(cptX, cptY) != TILE_TYPE.EMPTY) {
                     BuildCollider(cptX, cptY);
                     BuildMesh(cptX, cptY, m_Text[(int)GetBlockType(cptX, cptY)]);
                 }
@@ -110,7 +113,7 @@ public class MeshCreator: MonoBehaviour {
 
     private void BuildCollider(int p_X, int p_Y) {
         #region TOP
-        if (GetBlockType(p_X, p_Y + 1) == MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X, p_Y + 1) == TILE_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 0));
@@ -119,7 +122,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region BOTTOM
-        if (GetBlockType(p_X, p_Y - 1) == MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X, p_Y - 1) == TILE_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y - 1, 0));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 0));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 1));
@@ -128,7 +131,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region LEFT
-        if (GetBlockType(p_X - 1, p_Y) == MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X - 1, p_Y) == TILE_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X, p_Y - 1, 1));
             m_ColVertices.Add(new Vector3(p_X, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X, p_Y, 0));
@@ -137,7 +140,7 @@ public class MeshCreator: MonoBehaviour {
         #endregion
 
         #region RIGHT
-        if (GetBlockType(p_X + 1, p_Y) == MAP_TYPE.EMPTY) {
+        if (GetBlockType(p_X + 1, p_Y) == TILE_TYPE.EMPTY) {
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 1));
             m_ColVertices.Add(new Vector3(p_X + 1, p_Y - 1, 0));
@@ -202,22 +205,57 @@ public class MeshCreator: MonoBehaviour {
         m_Mesh.RecalculateNormals();
     }
 
-    private MAP_TYPE GetBlockType(int p_X, int p_Y) {
-        if (p_X <= -1 || p_X >= MapSize_X || p_Y <= -1 || p_Y >= MapSize_Y * 2) return MAP_TYPE.EMPTY;
+    private TILE_TYPE GetBlockType(int p_X, int p_Y) {
+        if (p_X <= -1 || p_X >= MapSize_X || p_Y <= -1 || p_Y >= MapSize_Y * 2) return TILE_TYPE.EMPTY;
         else {
             int l_Index = m_Pos.IndexOf(new Vector2(p_X, p_Y));
 
-            return (l_Index != -1) ? m_Type[l_Index] : MAP_TYPE.EMPTY;
+            return (l_Index != -1) ? m_Type[l_Index] : TILE_TYPE.EMPTY;
         }
     }
 
     public void DestroyBlockAt(Vector3 p_Pos) {
         Vector2 l_Vec = new Vector2(Mathf.Floor(p_Pos.x), Mathf.Ceil(p_Pos.y));
 
-        if (GetBlockType((int)l_Vec.x, (int)l_Vec.y) != MAP_TYPE.EMPTY) {
-            m_Type[m_Pos.IndexOf(l_Vec)] = MAP_TYPE.EMPTY;
+        if (GetBlockType((int)l_Vec.x, (int)l_Vec.y) != TILE_TYPE.EMPTY) {
+            m_Type[m_Pos.IndexOf(l_Vec)] = TILE_TYPE.EMPTY;
             UpdateMap();
         }
     }
+
+    private void SaveLevel() {
+        JSONObject l_JsonLevel = new JSONObject(JSONObject.Type.OBJECT);
+
+        #region Sizes
+        l_JsonLevel.AddField(FIELD_SIZE_X, MapSize_X);
+        l_JsonLevel.AddField(FIELD_SIZE_Y, MapSize_Y);
+        #endregion
+
+        #region Map
+        JSONObject l_JsonMap = new JSONObject(JSONObject.Type.ARRAY);
+        for (int cptTile = 0; cptTile < m_Type.Count; cptTile++) {
+            if (m_Type[cptTile] != TILE_TYPE.EMPTY) {
+                JSONObject l_JsonTile = new JSONObject(JSONObject.Type.OBJECT);
+
+                l_JsonTile.AddField(FIELD_POS, JSONTemplates.FromVector2(m_Pos[cptTile]));
+                l_JsonTile.AddField(FIELD_TYPE, (int)m_Type[cptTile]);
+            }
+        }
+        #endregion
+
+        #region Textures
+        JSONObject l_JsonTextures   = new JSONObject(JSONObject.Type.OBJECT);
+        string[] l_TypesName        = Enum.GetNames(typeof(TILE_TYPE));
+        for (int cptTexture = 0; cptTexture < m_Text.Count; cptTexture++) {
+            l_JsonTextures.AddField(l_TypesName[cptTexture], JSONTemplates.FromVector2(m_Text[cptTexture]));
+        }
+        #endregion
+    }
     #endregion
+}
+
+public enum TILE_TYPE {
+    EMPTY,
+    GRASS,
+    STONE
 }
