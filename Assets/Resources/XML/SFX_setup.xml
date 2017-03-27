@@ -1,0 +1,11 @@
+<SFX_SETUP>
+  <SFX name="door_close" volume="0.5" />
+  <SFX name="door_open" volume="0.5" />
+  <SFX name="lever_use" volume="0.5" />
+  <SFX name="drop" volume="0.5" />
+  <SFX name="pickup" volume="0.5" />
+	<SFX name="grenade" volume="0.5" />
+	<SFX name="smoke" volume="0.5" />
+	<SFX name="shotgun" volume="0.5" />
+	<SFX name="sniper" volume="0.5" />
+</SFX_SETUP>
