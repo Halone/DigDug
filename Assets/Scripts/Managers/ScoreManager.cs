@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class ScoreManager: BaseManager<ScoreManager> {
     #region Variables
-    private const string PATH_JSON          = "json/";
+    private const string PATH_JSON_SAVE     = @"Assets\Resources\json\";
+    private const string PATH_JSON_LOAD     = "json/";
+    private const string EXT_JSON           = ".json";
     private const string NAME_FILE_SCORE    = "highscores";
     private const string FIELD_NAME         = "name";
     private const string FIELD_SCORE        = "score";
@@ -18,7 +21,7 @@ public class ScoreManager: BaseManager<ScoreManager> {
         m_HighscoreNames    = new List<string>();
         m_HighscoreScores   = new List<int>();
 
-        TextAsset l_JsonScore = Resources.Load(PATH_JSON + NAME_FILE_SCORE) as TextAsset;
+        TextAsset l_JsonScore = Resources.Load(PATH_JSON_LOAD + NAME_FILE_SCORE) as TextAsset;
         if (l_JsonScore == null) Debug.LogError(NAME_FILE_SCORE + " not found.");
 
         JSONObject l_ScoreData = new JSONObject(l_JsonScore.ToString());
@@ -53,6 +56,8 @@ public class ScoreManager: BaseManager<ScoreManager> {
                 l_Pair                  = l_TempPair;
             }
         }
+
+        SaveScore();
     }
 
     public KeyValuePair<string, string> GetFormattedLeaderboard() {
@@ -65,5 +70,22 @@ public class ScoreManager: BaseManager<ScoreManager> {
         }
 
         return new KeyValuePair<string, string>(l_LeaderboardStrName, l_LeaderboardStrScore);
+    }
+
+    private void SaveScore()
+    {
+        JSONObject m_HighscoresJson = new JSONObject(JSONObject.Type.OBJECT);
+        JSONObject m_HighscoreData;
+
+        for (int i = 0; i < NB_HIGHSCORE; i++)
+        {
+            m_HighscoreData = new JSONObject(JSONObject.Type.OBJECT);
+            m_HighscoreData.AddField(FIELD_NAME, m_HighscoreNames[i]);
+            m_HighscoreData.AddField(FIELD_SCORE, m_HighscoreScores[i]);
+
+            m_HighscoresJson.AddField(i.ToString(), m_HighscoreData);
+        }
+
+        File.WriteAllText(PATH_JSON_SAVE + NAME_FILE_SCORE + EXT_JSON, m_HighscoresJson.ToString());
     }
 }
