@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 [ExecuteInEditMode]
 public class MeshCreator: MonoBehaviour {
     #region Variables
-    private const string PATH_JSON          = "";
-    private const string NAME_FILE_LEVEL    = "level";
-    private const string FIELD_SIZE_X       = "size_X";
-    private const string FIELD_SIZE_Y       = "size_Y";
-    private const string FIELD_MAP          = "map";
-    private const string FIELD_POS          = "position";
-    private const string FIELD_TYPE         = "type";
-    private const string FIELD_TEXTURES     = "textures";
+    private const string PATH_JSON = @"Assets\Resources\json\";
+    private const string EXT_JSON = ".json";
+    private const string NAME_FILE_LEVEL = "level";
+    private const string FIELD_SIZE_X = "size_X";
+    private const string FIELD_SIZE_Y = "size_Y";
+    private const string FIELD_MAP = "map";
+    private const string FIELD_POS = "position";
+    private const string FIELD_TYPE = "type";
+    private const string FIELD_TEXTURES = "textures";
+    private const string FIELD_X = "x";
+    private const string FIELD_Y = "y";
     private const float UNIT_TEXTURE        = 0.0625f;
 
     private Mesh m_Mesh;
@@ -28,9 +32,12 @@ public class MeshCreator: MonoBehaviour {
     [Range(30, 100)]
     public int MapSize_Y;
 
+    [HideInInspector]
     public List<Vector2> m_Pos;
+    [HideInInspector]
     public List<TILE_TYPE> m_Type;
-    public List<Vector2> m_Text;
+    [HideInInspector]
+    public List<Vector2> m_Textures;
     #endregion
 
     #region Initialisation & Destroy
@@ -47,11 +54,11 @@ public class MeshCreator: MonoBehaviour {
 
     #region Map Managment
     public void BuildMap(Vector2 p_Texture1, Vector2 p_Texture2) {
-        if (m_Text != null) m_Text.Clear();
-        else m_Text = new List<Vector2>();
-        m_Text.Add(Vector2.zero);
-        m_Text.Add(p_Texture1);
-        m_Text.Add(p_Texture2);
+        if (m_Textures != null) m_Textures.Clear();
+        else m_Textures = new List<Vector2>();
+        m_Textures.Add(Vector2.zero);
+        m_Textures.Add(p_Texture1);
+        m_Textures.Add(p_Texture2);
 
         GenerateMap();
         UpdateMap();
@@ -102,7 +109,7 @@ public class MeshCreator: MonoBehaviour {
             for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
                 if (GetBlockType(cptX, cptY) != TILE_TYPE.EMPTY) {
                     BuildCollider(cptX, cptY);
-                    BuildMesh(cptX, cptY, m_Text[(int)GetBlockType(cptX, cptY)]);
+                    BuildMesh(cptX, cptY, m_Textures[(int)GetBlockType(cptX, cptY)]);
                 }
             }
         }
@@ -223,7 +230,10 @@ public class MeshCreator: MonoBehaviour {
         }
     }
 
-    private void SaveLevel() {
+    #endregion
+
+    public void SaveLevel()
+    {
         JSONObject l_JsonLevel = new JSONObject(JSONObject.Type.OBJECT);
 
         #region Sizes
@@ -233,25 +243,33 @@ public class MeshCreator: MonoBehaviour {
 
         #region Map
         JSONObject l_JsonMap = new JSONObject(JSONObject.Type.ARRAY);
-        for (int cptTile = 0; cptTile < m_Type.Count; cptTile++) {
-            if (m_Type[cptTile] != TILE_TYPE.EMPTY) {
+        for (int cptTile = 0; cptTile < m_Type.Count; cptTile++)
+        {
+            if (m_Type[cptTile] != TILE_TYPE.EMPTY)
+            {
                 JSONObject l_JsonTile = new JSONObject(JSONObject.Type.OBJECT);
 
                 l_JsonTile.AddField(FIELD_POS, JSONTemplates.FromVector2(m_Pos[cptTile]));
                 l_JsonTile.AddField(FIELD_TYPE, (int)m_Type[cptTile]);
+
+                l_JsonMap.Add(l_JsonTile);
             }
         }
+        l_JsonLevel.AddField(FIELD_MAP, l_JsonMap);
         #endregion
 
         #region Textures
-        JSONObject l_JsonTextures   = new JSONObject(JSONObject.Type.OBJECT);
-        string[] l_TypesName        = Enum.GetNames(typeof(TILE_TYPE));
-        for (int cptTexture = 0; cptTexture < m_Text.Count; cptTexture++) {
-            l_JsonTextures.AddField(l_TypesName[cptTexture], JSONTemplates.FromVector2(m_Text[cptTexture]));
+        JSONObject l_JsonTextures = new JSONObject(JSONObject.Type.OBJECT);
+        string[] l_TypesName = Enum.GetNames(typeof(TILE_TYPE));
+        for (int cptTexture = 0; cptTexture < m_Textures.Count; cptTexture++)
+        {
+            l_JsonTextures.AddField(l_TypesName[cptTexture], JSONTemplates.FromVector2(m_Textures[cptTexture]));
         }
+        l_JsonLevel.AddField(FIELD_TEXTURES, l_JsonTextures);
         #endregion
+
+        File.WriteAllText(PATH_JSON + NAME_FILE_LEVEL + EXT_JSON, l_JsonLevel.ToString());
     }
-    #endregion
 }
 
 public enum TILE_TYPE {
