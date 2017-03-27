@@ -15,13 +15,15 @@ public class GameManager: Singleton<GameManager> {
         while (
             UIManager.instance == null && 
             ScoreManager.instance == null &&
-            LevelManager.instance == null
+            LevelManager.instance == null &&
+            SoundsManager.instance == null
         ) yield return false;
 
         while (
             !UIManager.instance.isReady && 
             !ScoreManager.instance.isReady &&
-            !LevelManager.instance.isReady
+            !LevelManager.instance.isReady &&
+            !SoundsManager.instance.isReady
         ) yield return false;
 
         Init();
@@ -29,7 +31,8 @@ public class GameManager: Singleton<GameManager> {
         while (
             !UIManager.instance.isInit &&
             !ScoreManager.instance.isInit &&
-            !LevelManager.instance.isInit
+            !LevelManager.instance.isInit &&
+            !SoundsManager.instance.isInit
         ) yield return false;
 
         UIManager.instance.onStartGame += Play;
