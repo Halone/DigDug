@@ -13,8 +13,10 @@ public class Pathfinding2D {
         if (GeneratePropagation(p_Model, p_Origin, p_Target, out l_PropagationMap))
         {
             p_Path = GetPath(l_PropagationMap, p_Target);
+            Debug.Log("Pathfinding2D: Pathfinding generation Succed");
             return false;
         }
+        Debug.LogError("Pathfinding2D: Pathfinding generation failed");
         p_Path = new List<Vector2>();
         return false;
     }
@@ -87,7 +89,7 @@ public class Pathfinding2D {
                 p_NextCellPos.x--;
                 return p_NextCellPos;
             default:
-                Debug.Log("Pathfing2D: Error Direction '" + p_Direction + "' not found");
+                Debug.LogError("Pathfing2D: Error Direction '" + p_Direction + "' not found");
                 return p_NextCellPos;
         }
     }
