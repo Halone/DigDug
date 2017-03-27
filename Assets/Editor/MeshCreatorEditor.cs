@@ -21,6 +21,10 @@ public class MeshCreatorEditor : Editor {
             if (GUILayout.Button("Generate World")) {
                 l_MeshCreator.BuildMap(m_Texture1, m_Texture2);
             }
+            if (GUILayout.Button("Save Map"))
+            {
+                l_MeshCreator.SaveLevel();
+            }
             EditorGUILayout.EndHorizontal();
         }
 

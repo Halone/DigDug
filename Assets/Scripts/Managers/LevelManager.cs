@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class LevelManager: BaseManager<LevelManager> {
     #region Variables
-    private const string PATH_JSON          = "";
+    private const string PATH_JSON          = "json/";
+    private const string EXT_JSON           = ".json";
     private const string NAME_FILE_LEVEL    = "level";
     private const string FIELD_SIZE_X       = "size_X";
     private const string FIELD_SIZE_Y       = "size_Y";
@@ -13,6 +15,10 @@ public class LevelManager: BaseManager<LevelManager> {
     private const string FIELD_POS          = "position";
     private const string FIELD_TYPE         = "type";
     private const string FIELD_TEXTURES     = "textures";
+    private const string FIELD_X            = "x";
+    private const string FIELD_Y            = "y";
+
+
     private const float UNIT_TEXTURE        = 0.0625f;
 
     private int m_MapSizeX;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class ScoreManager: BaseManager<ScoreManager> {
     #region Variables
-    private const string PATH_JSON          = "";
+    private const string PATH_JSON          = "json/";
     private const string NAME_FILE_SCORE    = "highscores";
     private const string FIELD_NAME         = "name";
     private const string FIELD_SCORE        = "score";
