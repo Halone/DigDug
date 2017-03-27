@@ -6,7 +6,9 @@ using UnityEngine;
 public class LevelManager: BaseManager<LevelManager> {
     #region Variables
     private const string PATH_JSON          = "";
+    private const string PATH_PREFABS       = "Prefabs/";
     private const string NAME_FILE_LEVEL    = "level";
+    private const string NAME_FILE_COLLIDER = "TileCollider";
     private const string FIELD_SIZE_X       = "size_X";
     private const string FIELD_SIZE_Y       = "size_Y";
     private const string FIELD_MAP          = "map";
@@ -25,18 +27,20 @@ public class LevelManager: BaseManager<LevelManager> {
     private List<Vector3> m_VerticesCollider;
     private List<int> m_TrianglesCollider;
     private Mesh m_World;
+    private GameObject m_PrefabTileCollider;
     #endregion
 
     #region Initialisation
     protected override IEnumerator CoroutineStart() {
-        m_Model             = new Dictionary<Vector2, TILE_TYPE>();
-        m_Textures          = new Dictionary<TILE_TYPE, Vector2[]>();
-        m_VerticesMesh      = new List<Vector3>();
-        m_TrianglesMesh     = new List<int>();
-        m_UV                = new List<Vector2>();
-        m_VerticesCollider  = new List<Vector3>();
-        m_TrianglesCollider = new List<int>();
-        m_World             = gameObject.transform.GetChild(0).GetComponent<MeshFilter>().mesh;
+        m_Model                 = new Dictionary<Vector2, TILE_TYPE>();
+        m_Textures              = new Dictionary<TILE_TYPE, Vector2[]>();
+        m_VerticesMesh          = new List<Vector3>();
+        m_TrianglesMesh         = new List<int>();
+        m_UV                    = new List<Vector2>();
+        m_VerticesCollider      = new List<Vector3>();
+        m_TrianglesCollider     = new List<int>();
+        m_World                 = gameObject.transform.GetChild(0).GetComponent<MeshFilter>().mesh;
+        m_PrefabTileCollider    = Resources.Load(PATH_PREFABS + NAME_FILE_COLLIDER) as GameObject;
 
         yield return true;
         isReady = true;
@@ -51,6 +55,7 @@ public class LevelManager: BaseManager<LevelManager> {
     protected override void Play() {
         InitLevel();
         CreatView();
+        CreatCollider();
         GenerateMesh();
     }
 
@@ -136,6 +141,22 @@ public class LevelManager: BaseManager<LevelManager> {
         m_TrianglesMesh.Add(p_Iteration + 1);
         m_TrianglesMesh.Add(p_Iteration + 2);
         m_TrianglesMesh.Add(p_Iteration + 3);
+    }
+
+    private void CreatCollider() {
+        Vector2 l_Pos = new Vector2();
+        TILE_TYPE l_Type;
+
+        for (int cptLine = 0; cptLine < m_MapSizeY; cptLine++) {
+            for (int cptColumn = 0; cptColumn < m_MapSizeX; cptColumn++) {
+                l_Pos.Set(cptColumn, cptLine);
+                l_Type = GetTileType(l_Pos);
+
+                if (l_Type != TILE_TYPE.EMPTY) {
+                    Instantiate(m_PrefabTileCollider, l_Pos, Quaternion.identity, gameObject.transform);
+                }
+            }
+        }
     }
 
     private void GenerateMesh() {
