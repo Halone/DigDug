@@ -28,6 +28,8 @@ public class LevelManager: BaseManager<LevelManager> {
     private List<int> m_TrianglesCollider;
     private Mesh m_World;
     private GameObject m_PrefabTileCollider;
+
+    public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
     #endregion
 
     #region Initialisation
@@ -54,8 +56,11 @@ public class LevelManager: BaseManager<LevelManager> {
 
     protected override void Play() {
         InitLevel();
-        CreatView();
+
         CreatCollider();
+        if (onUpdateCollider != null) onUpdateCollider(m_Model);
+
+        CreatView();
         GenerateMesh();
     }
 

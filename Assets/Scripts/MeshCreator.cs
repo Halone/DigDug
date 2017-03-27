@@ -82,18 +82,16 @@ public class MeshCreator: MonoBehaviour {
             l_Dirt      += (int)(MapSize_Y * 0.75f);
 
             for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
-                if (cptY < l_Stone) {
-                    m_Pos.Add(new Vector2(cptX, cptY));
+                m_Pos.Add(new Vector2(cptX, cptY));
 
+                if (cptY < l_Stone) {
                     if (GetNoise(cptX, cptY, 14, 16) > 10) m_Type.Add(TILE_TYPE.GRASS);
                     else if (GetNoise(cptX, cptY * 2, 14, 16) > 10) m_Type.Add(TILE_TYPE.EMPTY);
                     else m_Type.Add(TILE_TYPE.STONE);
 
                 }
-                else if (cptY < l_Dirt) {
-                    m_Pos.Add(new Vector2(cptX, cptY));
-                    m_Type.Add(TILE_TYPE.GRASS);
-                }
+                else if (cptY < l_Dirt) m_Type.Add(TILE_TYPE.GRASS);
+                else m_Type.Add(TILE_TYPE.EMPTY);
             }
         }
     }
@@ -231,14 +229,14 @@ public class MeshCreator: MonoBehaviour {
         #region Map
         JSONObject l_JsonMap = new JSONObject(JSONObject.Type.ARRAY);
         for (int cptTile = 0; cptTile < m_Type.Count; cptTile++) {
-            if (m_Type[cptTile] != TILE_TYPE.EMPTY) {
+            //if (m_Type[cptTile] != TILE_TYPE.EMPTY) {
                 JSONObject l_JsonTile = new JSONObject(JSONObject.Type.OBJECT);
 
                 l_JsonTile.AddField(FIELD_POS, JSONTemplates.FromVector2(m_Pos[cptTile]));
                 l_JsonTile.AddField(FIELD_TYPE, (int)m_Type[cptTile]);
 
                 l_JsonMap.Add(l_JsonTile);
-            }
+            //}
         }
         l_JsonLevel.AddField(FIELD_MAP, l_JsonMap);
         #endregion
