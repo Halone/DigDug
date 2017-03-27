@@ -6,17 +6,15 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class MeshCreator: MonoBehaviour {
     #region Variables
-    private const string PATH_JSON = @"Assets\Resources\json\";
-    private const string EXT_JSON = ".json";
-    private const string NAME_FILE_LEVEL = "level";
-    private const string FIELD_SIZE_X = "size_X";
-    private const string FIELD_SIZE_Y = "size_Y";
-    private const string FIELD_MAP = "map";
-    private const string FIELD_POS = "position";
-    private const string FIELD_TYPE = "type";
-    private const string FIELD_TEXTURES = "textures";
-    private const string FIELD_X = "x";
-    private const string FIELD_Y = "y";
+    private const string PATH_JSON          = @"Assets\Resources\JSON\";
+    private const string EXT_JSON           = ".json";
+    private const string NAME_FILE_LEVEL    = "level";
+    private const string FIELD_SIZE_X       = "size_X";
+    private const string FIELD_SIZE_Y       = "size_Y";
+    private const string FIELD_MAP          = "map";
+    private const string FIELD_POS          = "position";
+    private const string FIELD_TYPE         = "type";
+    private const string FIELD_TEXTURES     = "textures";
     private const float UNIT_TEXTURE        = 0.0625f;
 
     private Mesh m_Mesh;
@@ -220,20 +218,9 @@ public class MeshCreator: MonoBehaviour {
             return (l_Index != -1) ? m_Type[l_Index] : TILE_TYPE.EMPTY;
         }
     }
-
-    public void DestroyBlockAt(Vector3 p_Pos) {
-        Vector2 l_Vec = new Vector2(Mathf.Floor(p_Pos.x), Mathf.Ceil(p_Pos.y));
-
-        if (GetBlockType((int)l_Vec.x, (int)l_Vec.y) != TILE_TYPE.EMPTY) {
-            m_Type[m_Pos.IndexOf(l_Vec)] = TILE_TYPE.EMPTY;
-            UpdateMap();
-        }
-    }
-
     #endregion
 
-    public void SaveLevel()
-    {
+    public void SaveLevel() {
         JSONObject l_JsonLevel = new JSONObject(JSONObject.Type.OBJECT);
 
         #region Sizes
@@ -243,10 +230,8 @@ public class MeshCreator: MonoBehaviour {
 
         #region Map
         JSONObject l_JsonMap = new JSONObject(JSONObject.Type.ARRAY);
-        for (int cptTile = 0; cptTile < m_Type.Count; cptTile++)
-        {
-            if (m_Type[cptTile] != TILE_TYPE.EMPTY)
-            {
+        for (int cptTile = 0; cptTile < m_Type.Count; cptTile++) {
+            if (m_Type[cptTile] != TILE_TYPE.EMPTY) {
                 JSONObject l_JsonTile = new JSONObject(JSONObject.Type.OBJECT);
 
                 l_JsonTile.AddField(FIELD_POS, JSONTemplates.FromVector2(m_Pos[cptTile]));
@@ -261,10 +246,10 @@ public class MeshCreator: MonoBehaviour {
         #region Textures
         JSONObject l_JsonTextures = new JSONObject(JSONObject.Type.OBJECT);
         string[] l_TypesName = Enum.GetNames(typeof(TILE_TYPE));
-        for (int cptTexture = 0; cptTexture < m_Textures.Count; cptTexture++)
-        {
+        for (int cptTexture = 0; cptTexture < m_Textures.Count; cptTexture++) {
             l_JsonTextures.AddField(l_TypesName[cptTexture], JSONTemplates.FromVector2(m_Textures[cptTexture]));
         }
+
         l_JsonLevel.AddField(FIELD_TEXTURES, l_JsonTextures);
         #endregion
 

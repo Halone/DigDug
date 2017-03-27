@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class LevelManager: BaseManager<LevelManager> {
     #region Variables
-    private const string PATH_JSON          = "";
+    private const string PATH_JSON          = "JSON/";
     private const string PATH_PREFABS       = "Prefabs/";
     private const string NAME_FILE_LEVEL    = "level";
     private const string NAME_FILE_COLLIDER = "TileCollider";
