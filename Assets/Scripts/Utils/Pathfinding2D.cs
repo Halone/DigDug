@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
+/*By Erwan CLEMENT, erwan.clement.pro@gmail.com*/
 public class Pathfinding2D {
 
     #region Public Interface
@@ -29,13 +31,22 @@ public class Pathfinding2D {
         Debug.Log("Start Path Writing");
         Dictionary<Vector2, int> l_PropagationMap = new Dictionary<Vector2, int>();
 
-        if (false)
-        {
-            p_PropagationMap = l_PropagationMap;
-            return false;
-        }
+        RecursivePropagation(l_PropagationMap, p_Origin, 0);
+
         p_PropagationMap = l_PropagationMap;
-        return true;
+        return l_PropagationMap.ContainsKey(p_Target);
+    }
+
+    private static void RecursivePropagation(Dictionary<Vector2, int> p_PropagationMap, Vector2 p_CurrentPos, int m_CurrentPropaIndex)
+    {
+        DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
+
+        foreach (DIRECTION p_Direction in l_Directions)
+        {
+            Vector2 p_NearCell = GetNextCellPos(p_CurrentPos, p_Direction);
+            if (!p_PropagationMap.ContainsKey(p_NearCell) || p_PropagationMap[p_NearCell] > m_CurrentPropaIndex + 1)
+                RecursivePropagation(p_PropagationMap, p_NearCell, m_CurrentPropaIndex + 1);
+        }
     }
     #endregion
 
@@ -43,7 +54,9 @@ public class Pathfinding2D {
     #region Path Reading
     private static List<Vector2> GetPath(Dictionary<Vector2, int> p_PropagationMap,Vector2 p_Target)
     {
+        
         Debug.Log("Start Path Reading");
+        DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
         List<Vector2> l_Path = new List<Vector2>();
         Vector2 l_CurrentModelPos = p_Target;
         Vector2 l_CurrentBestCell = new Vector2();
@@ -51,10 +64,8 @@ public class Pathfinding2D {
 
         while (l_CurrentPathIndex > 0)
         {
-            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, DIRECTION.UP)       , l_CurrentPathIndex, l_CurrentBestCell);
-            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, DIRECTION.RIGHT)    , l_CurrentPathIndex, l_CurrentBestCell);
-            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, DIRECTION.BOTTOM)   , l_CurrentPathIndex, l_CurrentBestCell);
-            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, DIRECTION.LEFT)     , l_CurrentPathIndex, l_CurrentBestCell);
+            foreach(DIRECTION p_Direction in l_Directions)
+            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, p_Direction)       , l_CurrentPathIndex, l_CurrentBestCell);
 
             l_CurrentModelPos = l_CurrentBestCell;
         }
@@ -70,7 +81,9 @@ public class Pathfinding2D {
             p_CurrentBestPathValue = p_PropagationMap[p_TargetCell];
         }
     }
+    #endregion
 
+    #region Utils
     private static Vector2 GetNextCellPos(Vector2 p_CurrentCell, DIRECTION p_Direction)
     {
         Vector2 p_NextCellPos = p_CurrentCell;
