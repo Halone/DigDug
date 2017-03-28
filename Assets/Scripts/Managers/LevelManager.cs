@@ -9,6 +9,7 @@ public class LevelManager: BaseManager<LevelManager> {
     private const string PATH_PREFABS       = "Prefabs/";
     private const string NAME_FILE_LEVEL    = "level";
     private const string NAME_FILE_COLLIDER = "TileCollider";
+    private const string NAME_FILE_PLAYER   = "Player";
     private const string FIELD_SIZE_X       = "size_X";
     private const string FIELD_SIZE_Y       = "size_Y";
     private const string FIELD_MAP          = "map";
@@ -28,6 +29,8 @@ public class LevelManager: BaseManager<LevelManager> {
     private List<int> m_TrianglesCollider;
     private Mesh m_World;
     private GameObject m_PrefabTileCollider;
+    private GameObject m_PrefabPlayer;
+    private Vector3 m_PosStartPlayer;
 
     public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
     #endregion
@@ -43,9 +46,16 @@ public class LevelManager: BaseManager<LevelManager> {
         m_TrianglesCollider     = new List<int>();
         m_World                 = gameObject.transform.GetChild(0).GetComponent<MeshFilter>().mesh;
         m_PrefabTileCollider    = Resources.Load(PATH_PREFABS + NAME_FILE_COLLIDER) as GameObject;
+        m_PrefabPlayer          = Resources.Load(PATH_PREFABS + NAME_FILE_PLAYER) as GameObject;
+        m_PosStartPlayer        = new Vector3();
 
         yield return true;
         isReady = true;
+    }
+
+    protected override void Init() {
+        TileCollider.onTileDestroy += UpdateMap;
+        base.Init();
     }
     #endregion
 
@@ -55,13 +65,26 @@ public class LevelManager: BaseManager<LevelManager> {
     }
 
     protected override void Play() {
+        //DATA
         InitLevel();
-
-        CreatCollider();
-        if (onUpdateCollider != null) onUpdateCollider(m_Model);
-
+        //VIEW
         CreatView();
         GenerateMesh();
+        //COLLIDER
+        CreatCollider();
+        if (onUpdateCollider != null) onUpdateCollider(m_Model);
+        //PLAYER
+        Instantiate(m_PrefabPlayer, m_PosStartPlayer, Quaternion.identity, gameObject.transform);
+        //CAMERA
+        Camera.main.transform.position  = m_World.bounds.center + Vector3.back * 10;
+        Camera.main.orthographicSize    = Mathf.Min(m_MapSizeX, m_MapSizeY) / 2;
+        Camera.main.orthographicSize    /= Camera.main.pixelRect.width / Camera.main.pixelRect.height;
+    }
+
+    private void UpdateWorld() {
+        CreatView();
+        GenerateMesh();
+        if (onUpdateCollider != null) onUpdateCollider(m_Model);
     }
 
     #region Map Managment
@@ -102,6 +125,10 @@ public class LevelManager: BaseManager<LevelManager> {
 
             m_Textures.Add((TILE_TYPE)Enum.Parse(typeof(TILE_TYPE), typeName), l_Square);
         }
+        #endregion
+
+        #region Player
+        m_PosStartPlayer.Set(Mathf.Floor(m_MapSizeX / 2), m_MapSizeY + 1, 0);
         #endregion
     }
 
@@ -171,8 +198,20 @@ public class LevelManager: BaseManager<LevelManager> {
         m_World.triangles   = m_TrianglesMesh.ToArray();
         m_World.uv          = m_UV.ToArray();
 
+        m_VerticesMesh.Clear();
+        m_TrianglesMesh.Clear();
+        m_UV.Clear();
+
         m_World.Optimize();
         m_World.RecalculateNormals();
+    }
+
+    private void UpdateMap(Vector2 p_Pos) {
+        if (m_Model.ContainsKey(p_Pos)) {
+            m_Model[p_Pos] = TILE_TYPE.EMPTY;
+            Debug.Log(m_Model[p_Pos]);
+            UpdateWorld();
+        }
     }
     #endregion
 

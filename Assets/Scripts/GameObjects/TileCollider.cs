@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TileCollider: MonoBehaviour {
     #region Variables
+    private const string TAG_PLAYER = "Player";
+
     private static List<Vector3> m_VerticesPos;
+
+    public static Action<Vector2> onTileDestroy;
 
     private MeshCollider m_Collider;
     private Mesh m_Mesh;
@@ -118,6 +123,13 @@ public class TileCollider: MonoBehaviour {
         m_Collider.sharedMesh   = m_Mesh;
         m_Vertices.Clear();
         m_Triangles.Clear();
+    }
+
+    void OnTriggerEnter(Collider p_Collider) {
+        if (p_Collider.gameObject.tag == TAG_PLAYER)  {
+            if (onTileDestroy != null) onTileDestroy(gameObject.transform.position);
+            Destroy(gameObject);
+        }
     }
 
     #region Utils
