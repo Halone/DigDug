@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using System;
 
 /*By Erwan CLEMENT, erwan.clement.pro@gmail.com*/
-public class Pathfinding2D {
-
+/*public class Pathfinding2D {
+    static int temp_NbrIter = 0;
     #region Public Interface
     public static bool GetPath(Dictionary<Vector2, TILE_TYPE> p_Model, Vector2 p_Origin, Vector2 p_Target, out List<Vector2> p_Path)
     {
         Debug.Log("Init Pathfinding2D");
         Dictionary<Vector2, int> l_PropagationMap;
 
-        if (GeneratePropagation(p_Model, p_Origin, p_Target, out l_PropagationMap))
+        Vector2 temp_newOrigin = new Vector2(p_Origin.x - 0.5f, p_Origin.y - 0.5f);
+
+        if (GeneratePropagation(p_Model, temp_newOrigin, p_Target, out l_PropagationMap))
         {
             p_Path = GetPath(l_PropagationMap, p_Target);
             Debug.Log("Pathfinding2D: Pathfinding generation Succed");
@@ -31,21 +33,34 @@ public class Pathfinding2D {
         Debug.Log("Start Path Writing");
         Dictionary<Vector2, int> l_PropagationMap = new Dictionary<Vector2, int>();
 
-        RecursivePropagation(l_PropagationMap, p_Origin, 0);
+        RecursivePropagation(p_Model, l_PropagationMap, p_Origin, 0);
 
         p_PropagationMap = l_PropagationMap;
         return l_PropagationMap.ContainsKey(p_Target);
     }
 
-    private static void RecursivePropagation(Dictionary<Vector2, int> p_PropagationMap, Vector2 p_CurrentPos, int m_CurrentPropaIndex)
+    private static void RecursivePropagation(Dictionary<Vector2, TILE_TYPE> p_Model, Dictionary<Vector2, int> p_PropagationMap, Vector2 p_CurrentPos, int p_CurrentPropaIndex)
     {
+        temp_NbrIter++;
+
         DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
 
         foreach (DIRECTION p_Direction in l_Directions)
         {
             Vector2 p_NearCell = GetNextCellPos(p_CurrentPos, p_Direction);
-            if (!p_PropagationMap.ContainsKey(p_NearCell) || p_PropagationMap[p_NearCell] > m_CurrentPropaIndex + 1)
-                RecursivePropagation(p_PropagationMap, p_NearCell, m_CurrentPropaIndex + 1);
+            if (temp_NbrIter < 13 && p_Model.ContainsKey(p_NearCell))
+            {
+                if (!p_PropagationMap.ContainsKey(p_NearCell))
+                {
+                    p_PropagationMap.Add(p_NearCell, p_CurrentPropaIndex + 1);
+                    RecursivePropagation(p_Model, p_PropagationMap, p_NearCell, p_CurrentPropaIndex + 1);
+                }
+                else if (p_PropagationMap[p_NearCell] > p_CurrentPropaIndex + 1)
+                {
+                    p_PropagationMap[p_NearCell] = p_CurrentPropaIndex + 1;
+                    RecursivePropagation(p_Model, p_PropagationMap, p_NearCell, p_CurrentPropaIndex + 1);
+                }
+            }
         }
     }
     #endregion
@@ -61,15 +76,18 @@ public class Pathfinding2D {
         Vector2 l_CurrentModelPos = p_Target;
         Vector2 l_CurrentBestCell = new Vector2();
         int l_CurrentPathIndex = p_PropagationMap[p_Target];
+        l_Path.Add(l_CurrentModelPos);
 
         while (l_CurrentPathIndex > 0)
         {
             foreach(DIRECTION p_Direction in l_Directions)
-            IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, p_Direction)       , l_CurrentPathIndex, l_CurrentBestCell);
+                IsNextCellValid(p_PropagationMap, GetNextCellPos(l_CurrentModelPos, p_Direction), l_CurrentPathIndex, l_CurrentBestCell);
 
             l_CurrentModelPos = l_CurrentBestCell;
+            l_Path.Add(l_CurrentModelPos);
         }
 
+        l_Path.Reverse();
         return l_Path;
     }
 
@@ -107,6 +125,62 @@ public class Pathfinding2D {
         }
     }
     #endregion
+    #endregion
+}*/
+
+public class Pathfinding2D
+{
+    Dictionary<Vector2, TILE_TYPE> m_Model;
+
+    public Dictionary<Vector2, int> RecursiveMethode(Dictionary<Vector2, int> p_Map, List<Vector2> p_List, int p_Iter = 0)
+    {
+        List<Vector2> l_NextIter = new List<Vector2>();
+        DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
+
+        foreach (Vector2 l_Pos in p_List)
+        {
+            foreach (DIRECTION l_Direction in l_Directions)
+            {
+                Vector2 l_NextPos = GetNextCellPos(l_Pos, l_Direction);
+                if(m_Model.ContainsKey(l_NextPos) && !p_Map.ContainsKey(l_NextPos)) // Ajouter chemin plus court
+                {
+                    p_Map.Add(l_NextPos, p_Iter);
+                    l_NextIter.Add(l_NextPos);
+                }
+            }
+        }
+
+        if (l_NextIter.Count > 0)
+            return RecursiveMethode(p_Map, l_NextIter, p_Iter++);
+        else
+            return p_Map;
+    }
+
+    #region Utils
+    private Vector2 GetNextCellPos(Vector2 p_CurrentCell, DIRECTION p_Direction)
+    {
+        Vector2 p_NextCellPos = p_CurrentCell;
+        switch (p_Direction)
+        {
+            case DIRECTION.UP:
+                p_NextCellPos.y++;
+                break;
+            case DIRECTION.RIGHT:
+                p_NextCellPos.x++;
+                break;
+            case DIRECTION.BOTTOM:
+                p_NextCellPos.y--;
+                break;
+            case DIRECTION.LEFT:
+                p_NextCellPos.x--;
+                break;
+            default:
+                Debug.LogError("Pathfing2D: Error Direction '" + p_Direction + "' not found");
+                break;
+        }
+        return p_NextCellPos;
+
+    }
     #endregion
 }
 

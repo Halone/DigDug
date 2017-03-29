@@ -28,7 +28,10 @@ public class LevelManager: BaseManager<LevelManager> {
     private List<int> m_TrianglesCollider;
     private Mesh m_World;
     private GameObject m_PrefabTileCollider;
+    private GameObject m_Player;
 
+    public GameObject temp_Player;
+    public GameObject temp_Enemy;
     public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
     #endregion
 
@@ -62,6 +65,31 @@ public class LevelManager: BaseManager<LevelManager> {
 
         CreatView();
         GenerateMesh();
+
+        AddUnits();
+    }
+
+    private void AddUnits()
+    {
+        temp_Player.SetActive(true);
+        temp_Enemy.SetActive(true);
+    }
+
+    public bool GetPath(Vector2 m_Pos, out List<Vector2> m_Path) {
+        if(Pathfinding2D.GetPath(m_Model, m_Pos, GetPlayerModelPos(), out m_Path))
+            return true;
+        return false;
+    }
+
+    public Vector2 GetModelPos(GameObject m_Obj)
+    {
+        return new Vector2();
+    }
+
+    public Vector2 GetPlayerModelPos()
+    {
+        if (!m_Player) m_Player = temp_Player;//transform.Find("Player");
+        return m_Player.transform.position;
     }
 
     #region Map Managment
