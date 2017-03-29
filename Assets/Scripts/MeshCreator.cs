@@ -6,16 +6,25 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class MeshCreator: MonoBehaviour {
     #region Variables
-    private const string PATH_JSON          = @"Assets\Resources\JSON\";
-    private const string EXT_JSON           = ".json";
-    private const string NAME_FILE_LEVEL    = "level";
-    private const string FIELD_SIZE_X       = "size_X";
-    private const string FIELD_SIZE_Y       = "size_Y";
-    private const string FIELD_MAP          = "map";
-    private const string FIELD_POS          = "position";
-    private const string FIELD_TYPE         = "type";
-    private const string FIELD_TEXTURES     = "textures";
-    private const float UNIT_TEXTURE        = 0.0625f;
+    private const string PATH_JSON_WRITTING     = @"Assets\Resources\JSON\";
+    private const string PATH_PREFABS           = "Prefabs/";
+    private const string PATH_JSON              = ".json";
+    private const string NAME_FILE_LEVEL        = "level";
+    private const string FIELD_SIZE_X           = "size_X";
+    private const string FIELD_SIZE_Y           = "size_Y";
+    private const string FIELD_MAP              = "map";
+    private const string FIELD_POS              = "position";
+    private const string FIELD_TYPE             = "type";
+    private const string FIELD_TEXTURES         = "textures";
+    private const string FIELD_ENEMIES          = "enemies";
+    private const string FIELD_X                = "x";
+    private const string FIELD_Y                = "y";
+    private const string FIELD_POSITION         = "position";
+    private const string FIELD_PLAYER           = "player";
+    private const string NAME_FILE_ENEMY_PLONG  = "EnemyPlongeur";
+    private const string NAME_FILE_ENEMY_DRAG   = "EnemyDragon";
+    private const string NAME_FILE_PLAYER       = "Player";
+    private const float UNIT_TEXTURE            = 0.0625f;
 
     private Mesh m_Mesh;
     private List<Vector3> m_Vertices;
@@ -24,8 +33,15 @@ public class MeshCreator: MonoBehaviour {
     private MeshCollider m_Collider;
     private List<Vector3> m_ColVertices;
     private List<int> m_ColTriangles;
+    private Dictionary<string, GameObject> m_TypeToEnemy;
+    private Dictionary<GameObject, string> m_Enemies;
+    private GameObject m_PlayerObj;
+    private Vector3 m_PlayerMapPos;
+    private GameObject m_PrefabEnemyPlong;
+    private GameObject m_PrefabEnemyDrag;
+    private GameObject m_PrefabPlayer;
 
-    [Range(12, 48)]
+     [Range(12, 48)]
     public int MapSize_X;
     [Range(14, 56)]
     public int MapSize_Y;
@@ -40,13 +56,22 @@ public class MeshCreator: MonoBehaviour {
 
     #region Initialisation & Destroy
     void Start() {
-        m_Mesh          = gameObject.GetComponent<MeshFilter>().sharedMesh;
-        m_Vertices      = new List<Vector3>();
-        m_Triangles     = new List<int>();
-        m_UV            = new List<Vector2>();
-        m_Collider      = gameObject.GetComponent<MeshCollider>();
-        m_ColVertices   = new List<Vector3>();
-        m_ColTriangles  = new List<int>();
+        m_Mesh              = gameObject.GetComponent<MeshFilter>().sharedMesh;
+        m_Vertices          = new List<Vector3>();
+        m_Triangles         = new List<int>();
+        m_UV                = new List<Vector2>();
+        m_Collider          = gameObject.GetComponent<MeshCollider>();
+        m_ColVertices       = new List<Vector3>();
+        m_ColTriangles      = new List<int>();
+        m_Enemies           = new Dictionary<GameObject, string>();
+        m_PrefabEnemyPlong  = Resources.Load(PATH_PREFABS + NAME_FILE_ENEMY_PLONG) as GameObject;
+        m_PrefabEnemyDrag   = Resources.Load(PATH_PREFABS + NAME_FILE_ENEMY_DRAG) as GameObject;
+        m_PrefabPlayer      = Resources.Load(PATH_PREFABS + NAME_FILE_PLAYER) as GameObject;
+        m_TypeToEnemy       = new Dictionary<string, GameObject>();
+
+        m_TypeToEnemy.Add(NAME_FILE_ENEMY_PLONG, m_PrefabEnemyPlong);
+        m_TypeToEnemy.Add(NAME_FILE_ENEMY_DRAG, m_PrefabEnemyDrag);
+        m_TypeToEnemy.Add(NAME_FILE_PLAYER, m_PrefabPlayer);
     }
     #endregion
 
@@ -218,6 +243,22 @@ public class MeshCreator: MonoBehaviour {
     }
     #endregion
 
+    public void AddUnitAt(Vector3 p_HitPos, string p_UnitType)
+    {
+        GameObject l_Unit = Instantiate<GameObject>(m_TypeToEnemy[p_UnitType]);
+        l_Unit.transform.position = p_HitPos;
+        m_Enemies.Add(l_Unit, p_UnitType);
+    }
+
+    public void AddPlayerAt(Vector3 p_HitPos)
+    {
+        if (!m_PlayerObj)
+            m_PlayerObj = Instantiate<GameObject>(m_TypeToEnemy[NAME_FILE_PLAYER]);
+
+        m_PlayerObj.transform.position = p_HitPos;
+        m_PlayerMapPos = p_HitPos;
+    }
+
     public void SaveLevel() {
         JSONObject l_JsonLevel = new JSONObject(JSONObject.Type.OBJECT);
 
@@ -251,7 +292,35 @@ public class MeshCreator: MonoBehaviour {
         l_JsonLevel.AddField(FIELD_TEXTURES, l_JsonTextures);
         #endregion
 
-        File.WriteAllText(PATH_JSON + NAME_FILE_LEVEL + EXT_JSON, l_JsonLevel.ToString());
+        #region Enemies
+        JSONObject l_JsonEnemy = new JSONObject(JSONObject.Type.ARRAY);
+        foreach (KeyValuePair<GameObject, string> l_EnemyObj in m_Enemies)
+        {
+            JSONObject l_EnemyJson = new JSONObject(JSONObject.Type.OBJECT);
+            JSONObject l_EnemyPosition = new JSONObject(JSONObject.Type.OBJECT);
+            l_EnemyPosition.AddField(FIELD_X, l_EnemyObj.Key.transform.position.x);
+            l_EnemyPosition.AddField(FIELD_Y, l_EnemyObj.Key.transform.position.y);
+
+            l_EnemyJson.AddField(FIELD_POSITION, l_EnemyPosition);
+            l_EnemyJson.AddField(FIELD_TYPE, l_EnemyObj.Value);
+
+            l_JsonEnemy.Add(l_EnemyJson);
+        }
+
+        l_JsonLevel.AddField(FIELD_ENEMIES, l_JsonEnemy);
+        #endregion
+
+        #region Player
+        JSONObject l_PlayerJson = new JSONObject(JSONObject.Type.OBJECT);
+        JSONObject l_PlayerPosition = new JSONObject(JSONObject.Type.OBJECT);
+        l_PlayerPosition.AddField(FIELD_X, m_PlayerMapPos.x);
+        l_PlayerPosition.AddField(FIELD_Y, m_PlayerMapPos.y);
+
+        l_PlayerJson.AddField(FIELD_POSITION, l_PlayerPosition);
+        l_JsonLevel.AddField(FIELD_PLAYER, l_PlayerJson);
+        #endregion
+
+        File.WriteAllText(PATH_JSON_WRITTING + NAME_FILE_LEVEL + PATH_JSON, l_JsonLevel.ToString());
     }
 }
 

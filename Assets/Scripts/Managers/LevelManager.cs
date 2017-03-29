@@ -5,22 +5,30 @@ using UnityEngine;
 
 public class LevelManager: BaseManager<LevelManager> {
     #region Variables
-    private const string PATH_JSON          = "JSON/";
-    private const string PATH_PREFABS       = "Prefabs/";
-    private const string NAME_FILE_LEVEL    = "level";
-    private const string NAME_FILE_COLLIDER = "TileCollider";
-    private const string NAME_FILE_PLAYER   = "Player";
-    private const string FIELD_SIZE_X       = "size_X";
-    private const string FIELD_SIZE_Y       = "size_Y";
-    private const string FIELD_MAP          = "map";
-    private const string FIELD_POS          = "position";
-    private const string FIELD_TYPE         = "type";
-    private const string FIELD_TEXTURES     = "textures";
-    private const float UNIT_TEXTURE        = 0.0625f;
+    private const string PATH_JSON              = "JSON/";
+    private const string PATH_PREFABS           = "Prefabs/";
+    private const string NAME_FILE_LEVEL        = "level";
+    private const string NAME_FILE_COLLIDER     = "TileCollider";
+    private const string NAME_FILE_PLAYER       = "Player";
+    private const string FIELD_ENEMIES          = "enemies";
+    private const string NAME_FILE_ENEMY_PLONG  = "EnemyPlongeur";
+    private const string NAME_FILE_ENEMY_DRAG   = "EnemyDragon";
+    private const string FIELD_SIZE_X           = "size_X";
+    private const string FIELD_SIZE_Y           = "size_Y";
+    private const string FIELD_MAP              = "map";
+    private const string FIELD_POS              = "position";
+    private const string FIELD_TYPE             = "type";
+    private const string FIELD_TEXTURES         = "textures";
+    private const string FIELD_X                = "x";
+    private const string FIELD_Y                = "y";
+    private const string FIELD_POSITION         = "position";
+    private const string FIELD_PLAYER           = "player";
+    private const float UNIT_TEXTURE            = 0.0625f;
 
     private int m_MapSizeX;
     private int m_MapSizeY;
     private Dictionary<Vector2, TILE_TYPE> m_Model;
+    private Dictionary<string, GameObject> m_TypeToEnemy;
     private Dictionary<TILE_TYPE, Vector2[]> m_Textures;
     private List<Vector3> m_VerticesMesh;
     private List<int> m_TrianglesMesh;
@@ -30,6 +38,8 @@ public class LevelManager: BaseManager<LevelManager> {
     private Mesh m_World;
     private GameObject m_PrefabTileCollider;
     private GameObject m_PrefabPlayer;
+    private GameObject m_PrefabEnemyPlong;
+    private GameObject m_PrefabEnemyDrag;
     private Vector3 m_PosStartPlayer;
 
     public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
@@ -47,8 +57,13 @@ public class LevelManager: BaseManager<LevelManager> {
         m_World                 = gameObject.transform.GetChild(0).GetComponent<MeshFilter>().mesh;
         m_PrefabTileCollider    = Resources.Load(PATH_PREFABS + NAME_FILE_COLLIDER) as GameObject;
         m_PrefabPlayer          = Resources.Load(PATH_PREFABS + NAME_FILE_PLAYER) as GameObject;
+        m_PrefabEnemyPlong      = Resources.Load(PATH_PREFABS + NAME_FILE_ENEMY_PLONG) as GameObject;
+        m_PrefabEnemyDrag       = Resources.Load(PATH_PREFABS + NAME_FILE_ENEMY_DRAG) as GameObject;
         m_PosStartPlayer        = new Vector3();
+        m_TypeToEnemy           = new Dictionary<string, GameObject>();
 
+        m_TypeToEnemy.Add(NAME_FILE_ENEMY_PLONG, m_PrefabEnemyPlong);
+        m_TypeToEnemy.Add(NAME_FILE_ENEMY_DRAG, m_PrefabEnemyDrag);
         yield return true;
         isReady = true;
     }
@@ -79,9 +94,6 @@ public class LevelManager: BaseManager<LevelManager> {
         Camera.main.transform.position  = m_World.bounds.center + Vector3.back * 10;
         Camera.main.orthographicSize    = Mathf.Min(m_MapSizeX, m_MapSizeY) / 2;
         Camera.main.orthographicSize    /= Camera.main.pixelRect.width / Camera.main.pixelRect.height;
-
-        List<Vector2>  l;
-        GetPath(new Vector2(2, 10), out l);
     }
 
     private void UpdateWorld() {
@@ -131,7 +143,21 @@ public class LevelManager: BaseManager<LevelManager> {
         #endregion
 
         #region Player
-        m_PosStartPlayer.Set(Mathf.Floor(m_MapSizeX / 2), m_MapSizeY + 1, 0);
+        //m_PosStartPlayer.Set(Mathf.Floor(m_MapSizeX / 2), m_MapSizeY + 1, 0);
+        JSONObject l_PlayerPos = l_JsonLevel.GetField(FIELD_PLAYER).GetField(FIELD_POSITION);
+        m_PosStartPlayer = new Vector3(l_PlayerPos.GetField(FIELD_X).f, l_PlayerPos.GetField(FIELD_Y).f, 0);
+        #endregion
+
+        #region Enemies
+        List<JSONObject> l_Enemies = l_JsonLevel.GetField(FIELD_ENEMIES).list;
+        foreach(JSONObject l_EnemyData in l_Enemies)
+        {
+            JSONObject l_EnemyPos = l_EnemyData.GetField(FIELD_POSITION);
+            print(l_EnemyPos);
+            print(l_EnemyPos.GetField(FIELD_Y).f);
+            GameObject l_EnemyObj = (GameObject)Instantiate(m_TypeToEnemy[l_EnemyData.GetField(FIELD_TYPE).str], transform);
+            l_EnemyObj.transform.position = new Vector3(l_EnemyPos.GetField(FIELD_X).f, l_EnemyPos.GetField(FIELD_Y).f, 0);
+        }
         #endregion
     }
 
@@ -243,12 +269,14 @@ public class LevelManager: BaseManager<LevelManager> {
     {
         Dictionary<Vector2, int> l_PropaMap = new Dictionary<Vector2, int>();
         List<Vector2> l_List = new List<Vector2>();
+        List<Vector2> l_Path;
         l_List.Add(m_Pos);
 
         RecursiveMethode(l_PropaMap, l_List);
-        print(l_PropaMap.Count);
+        l_Path = ReadPath(l_PropaMap, new Vector2(Mathf.Floor(m_Pos.x), Mathf.Floor(m_Pos.y)), m_PosStartPlayer);
+        print("l_Path.Count " + l_Path.Count);
 
-        m_Path = new List<Vector2>();
+        m_Path = l_Path;
         return true;
     }
 
@@ -280,11 +308,49 @@ public class LevelManager: BaseManager<LevelManager> {
         }
 
         if (l_NextIter.Count > 0)
-            return RecursiveMethode(p_Map, l_NextIter, p_Iter++);
+            return RecursiveMethode(p_Map, l_NextIter, p_Iter + 1);
         else
             return p_Map;
     }
 
+    #region Path Reading
+    private List<Vector2> ReadPath(Dictionary<Vector2, int> p_PropagationMap, Vector2 p_Origin, Vector2 p_Target)
+    {
+        Debug.Log("Start Path Reading");
+        if (p_PropagationMap.Count <= 0 || !p_PropagationMap.ContainsKey(p_Target))
+        {
+            Debug.Log("Reading Failed");
+            return new List<Vector2>();
+        }
+
+        DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
+
+        List<Vector2> l_Path = new List<Vector2>();
+        Vector2 l_CurrentBestCell = new Vector2();
+        Vector2 l_TargetCell;
+        Vector2 l_CurrentModelPos = p_Target;
+        l_Path.Add(l_CurrentModelPos);
+        int l_CurrentPathIndex = p_PropagationMap[p_Target];
+
+        while (l_CurrentPathIndex > 0)
+        {
+            foreach (DIRECTION p_Direction in l_Directions)
+            {
+                l_TargetCell = GetNextCellPos(l_CurrentModelPos, p_Direction);
+                if (p_PropagationMap.ContainsKey(l_TargetCell) && p_PropagationMap[l_TargetCell] < l_CurrentPathIndex)
+                {
+                    l_CurrentBestCell = l_TargetCell;
+                    l_CurrentPathIndex = p_PropagationMap[l_TargetCell];
+                }
+            }
+            l_Path.Add(l_CurrentBestCell);
+            l_CurrentModelPos = l_CurrentBestCell;
+        }
+
+        l_Path.Reverse();
+        return l_Path;
+    }
+    #endregion
     #region Utils
     private Vector2 GetNextCellPos(Vector2 p_CurrentCell, DIRECTION p_Direction)
     {

@@ -11,6 +11,7 @@ public class Enemy : MonoBehaviour {
     {
         EndMovePos = transform.position;
         SetDestination();
+        GoToNextCell();
     }
     
     private void SetDestination()
@@ -25,11 +26,12 @@ public class Enemy : MonoBehaviour {
 
     private void GoToNextCell()
     {
-        if ((m_CurrentPathIndex + 1) <= m_CurrentPath.Count)
+        if ((m_CurrentPathIndex + 1) <= (m_CurrentPath.Count - 1))
         {
             StopCoroutine("Move");
             EndMovePos = m_CurrentPath[m_CurrentPathIndex + 1];
             StartCoroutine(Move(m_CurrentPath[m_CurrentPathIndex], EndMovePos));
+            m_CurrentPathIndex++;
         }
         else print("Enemy Arrived");
     }

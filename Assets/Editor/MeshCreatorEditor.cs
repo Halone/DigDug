@@ -4,12 +4,20 @@ using System.Collections.Generic;
 
 [CustomEditor(typeof(MeshCreator))]
 public class MeshCreatorEditor : Editor {
-    bool l_Foldout;
-    List<Texture2D> m_Textures = new List<Texture2D>();
+    private const string PATH_TEXTURES = "Textures/";
+    private const string NAME_FILE_ENEMY_PLONG = "EnemyPlongeur";
+    private const string NAME_FILE_ENEMY_DRAG   = "EnemyDragon";
+    private const string NAME_FILE_PLAYER       = "Player";
+
+    private List<Texture2D> m_Textures = new List<Texture2D>();
     private const int NbrTexturePerLine = 4;
-    int countTexture = 0;
-    Vector2 m_Texture1;
-    Vector2 m_Texture2;
+    private int countTexture = 0;
+    private bool l_Foldout;
+    private Vector2 m_Texture1;
+    private Vector2 m_Texture2;
+    private Texture m_SpritePlongeur;
+    private Texture m_SpriteDragon;
+    private Texture m_SpritePlayer;
 
     public override void OnInspectorGUI() {
         base.OnInspectorGUI();
@@ -17,6 +25,7 @@ public class MeshCreatorEditor : Editor {
         MeshCreator l_MeshCreator = (MeshCreator)target;
 
         if (m_Texture1 != null && m_Texture2 != null) {
+            //Map Buttons
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Generate World")) {
                 l_MeshCreator.BuildMap(m_Texture1, m_Texture2);
@@ -26,6 +35,27 @@ public class MeshCreatorEditor : Editor {
                 l_MeshCreator.SaveLevel();
             }
             EditorGUILayout.EndHorizontal();
+
+            //Enemies Buttons
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button(m_SpritePlongeur))
+            {
+                l_MeshCreator.AddUnitAt(new Vector3(0, 11, 0), NAME_FILE_ENEMY_PLONG);
+            }
+            if (GUILayout.Button(m_SpriteDragon))
+            {
+                l_MeshCreator.AddUnitAt(new Vector3(0, 10, 0), NAME_FILE_ENEMY_DRAG);
+            }
+            EditorGUILayout.EndHorizontal();
+
+            //Player Button
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button(m_SpritePlayer))
+            {
+                l_MeshCreator.AddPlayerAt(new Vector3(5, 10, 0));
+            }
+            EditorGUILayout.EndHorizontal();
+
         }
 
         l_Foldout = EditorGUILayout.Foldout(l_Foldout, "Textures");
@@ -48,6 +78,9 @@ public class MeshCreatorEditor : Editor {
             EditorGUILayout.EndHorizontal();
         }
 
+        if (!m_SpritePlongeur)  m_SpritePlongeur = Resources.Load(PATH_TEXTURES + NAME_FILE_ENEMY_PLONG) as Texture;
+        if (!m_SpriteDragon)    m_SpriteDragon = Resources.Load(PATH_TEXTURES + NAME_FILE_ENEMY_DRAG) as Texture;
+        if (!m_SpritePlayer)    m_SpritePlayer = Resources.Load(PATH_TEXTURES + NAME_FILE_PLAYER) as Texture;
         if (m_Textures.Count == 0) FillTexture(l_MeshCreator);
     }
 
