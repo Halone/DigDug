@@ -25,9 +25,9 @@ public class MeshCreator: MonoBehaviour {
     private List<Vector3> m_ColVertices;
     private List<int> m_ColTriangles;
 
-    [Range(30, 100)]
+    [Range(12, 48)]
     public int MapSize_X;
-    [Range(30, 100)]
+    [Range(14, 56)]
     public int MapSize_Y;
 
     [HideInInspector]
@@ -81,7 +81,7 @@ public class MeshCreator: MonoBehaviour {
             l_Dirt      += GetNoise(cptX, (int)(MapSize_Y * 0.75f), MapSize_Y / 2, 30);
             l_Dirt      += (int)(MapSize_Y * 0.75f);
 
-            for (int cptY = 0; cptY < MapSize_Y * 2; cptY++) {
+            for (int cptY = 0; cptY < MapSize_Y; cptY++) {
                 m_Pos.Add(new Vector2(cptX, cptY));
 
                 if (cptY < l_Stone) {
@@ -223,7 +223,7 @@ public class MeshCreator: MonoBehaviour {
 
         #region Sizes
         l_JsonLevel.AddField(FIELD_SIZE_X, MapSize_X);
-        l_JsonLevel.AddField(FIELD_SIZE_Y, MapSize_Y * 2);
+        l_JsonLevel.AddField(FIELD_SIZE_Y, MapSize_Y);
         #endregion
 
         #region Map
