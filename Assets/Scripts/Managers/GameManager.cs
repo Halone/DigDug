@@ -36,6 +36,7 @@ public class GameManager: Singleton<GameManager> {
         ) yield return false;
 
         UIManager.instance.onStartGame += Play;
+        UIManager.instance.onEndGame += Menu;
         Menu();
 
         yield return true;

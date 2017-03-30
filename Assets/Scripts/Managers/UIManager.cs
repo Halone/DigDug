@@ -10,6 +10,7 @@ public class UIManager : BaseManager<UIManager> {
     private int m_Score;
     
     public Action onStartGame;
+    public Action onEndGame;
 
     #region Screen
     [Header("Screen")]
@@ -37,10 +38,15 @@ public class UIManager : BaseManager<UIManager> {
     
     #region Init & Base Methodes
     protected override IEnumerator CoroutineStart() {
-        yield return true;
         isReady = true;
+        yield return true;
     }
-
+    protected override void Init()
+    {
+        base.Init();
+        Player.onDeath += ShowEndScreen;
+        LevelManager.instance.onAllEnemiesDyed += ShowEndScreen;
+    }
     protected override void Menu() {
         ChangeScreen(MainScreen);
     }
@@ -66,6 +72,9 @@ public class UIManager : BaseManager<UIManager> {
     }
 
     private void ShowEndScreen(bool p_Win) {
+        if (onEndGame != null)
+            onEndGame();
+
         End_Title.text = (p_Win) ? "You Win" : "You Loose";
         End_Score.text = m_Score.ToString();
 

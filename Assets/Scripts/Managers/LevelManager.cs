@@ -41,8 +41,11 @@ public class LevelManager: BaseManager<LevelManager> {
     private GameObject m_PrefabEnemyPlong;
     private GameObject m_PrefabEnemyDrag;
     private Vector3 m_PosStartPlayer;
+    private uint m_EnemiesCount = 0;
 
     public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
+    public Action<bool> onAllEnemiesDyed;
+    public Action onClearLevel;
     #endregion
 
     #region Initialisation
@@ -69,6 +72,8 @@ public class LevelManager: BaseManager<LevelManager> {
     }
 
     protected override void Init() {
+        m_EnemiesCount = 0;
+        Enemy.onDie += CheckEnemiesDeath;
         TileCollider.onTileDestroy += UpdateMap;
         base.Init();
     }
@@ -100,6 +105,13 @@ public class LevelManager: BaseManager<LevelManager> {
         CreatView();
         GenerateMesh();
         if (onUpdateCollider != null) onUpdateCollider(m_Model);
+    }
+
+    private void CheckEnemiesDeath()
+    {
+        m_EnemiesCount--;
+        if (m_EnemiesCount <= 0 && onAllEnemiesDyed != null)
+            onAllEnemiesDyed(true);
     }
 
     #region Map Managment
@@ -153,10 +165,10 @@ public class LevelManager: BaseManager<LevelManager> {
         foreach(JSONObject l_EnemyData in l_Enemies)
         {
             JSONObject l_EnemyPos = l_EnemyData.GetField(FIELD_POSITION);
-            print(l_EnemyPos);
-            print(l_EnemyPos.GetField(FIELD_Y).f);
             GameObject l_EnemyObj = (GameObject)Instantiate(m_TypeToEnemy[l_EnemyData.GetField(FIELD_TYPE).str], transform);
             l_EnemyObj.transform.position = new Vector3(l_EnemyPos.GetField(FIELD_X).f, l_EnemyPos.GetField(FIELD_Y).f, 0);
+
+            m_EnemiesCount++;
         }
         #endregion
     }
@@ -236,6 +248,7 @@ public class LevelManager: BaseManager<LevelManager> {
     }
 
     private void UpdateMap(Vector2 p_Pos) {
+        print("Update map");
         if (m_Model.ContainsKey(p_Pos)) {
             m_Model[p_Pos] = TILE_TYPE.EMPTY;
             Debug.Log(m_Model[p_Pos]);
@@ -260,21 +273,23 @@ public class LevelManager: BaseManager<LevelManager> {
         m_UV.Clear();
         m_VerticesCollider.Clear();
         m_TrianglesCollider.Clear();
+
+        if (onClearLevel != null)
+            onClearLevel();
     }
     #endregion
     #endregion
 
     #region Pathfinding
-    public bool GetPath(Vector2 m_Pos, out List<Vector2> m_Path)
+    public bool GetPath(Vector2 m_Pos, out List<Vector2> m_Path, bool p_GoThroughWall)
     {
         Dictionary<Vector2, int> l_PropaMap = new Dictionary<Vector2, int>();
         List<Vector2> l_List = new List<Vector2>();
         List<Vector2> l_Path;
         l_List.Add(m_Pos);
 
-        RecursiveMethode(l_PropaMap, l_List);
+        RecursiveMethode(l_PropaMap, l_List, p_GoThroughWall);
         l_Path = ReadPath(l_PropaMap, new Vector2(Mathf.Floor(m_Pos.x), Mathf.Floor(m_Pos.y)), m_PosStartPlayer);
-        print("l_Path.Count " + l_Path.Count);
 
         m_Path = l_Path;
         return true;
@@ -285,7 +300,7 @@ public class LevelManager: BaseManager<LevelManager> {
         return new Vector2();
     }
 
-    public Dictionary<Vector2, int> RecursiveMethode(Dictionary<Vector2, int> p_Map, List<Vector2> p_List, int p_Iter = 0)
+    public Dictionary<Vector2, int> RecursiveMethode(Dictionary<Vector2, int> p_Map, List<Vector2> p_List, bool p_GoThroughWall, int p_Iter = 0)
     {
         List<Vector2> l_NextIter = new List<Vector2>();
         DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
@@ -298,7 +313,7 @@ public class LevelManager: BaseManager<LevelManager> {
                 Vector2 l_NextPos = GetNextCellPos(l_Pos, l_Direction);
                 if(m_Model.TryGetValue(l_NextPos, out l_Type))
                 {
-                    if(l_Type == TILE_TYPE.EMPTY && !p_Map.ContainsKey(l_NextPos))
+                    if((p_GoThroughWall || l_Type == TILE_TYPE.EMPTY) && !p_Map.ContainsKey(l_NextPos))
                     {
                         p_Map.Add(l_NextPos, p_Iter);
                         l_NextIter.Add(l_NextPos);
@@ -308,20 +323,36 @@ public class LevelManager: BaseManager<LevelManager> {
         }
 
         if (l_NextIter.Count > 0)
-            return RecursiveMethode(p_Map, l_NextIter, p_Iter + 1);
+            return RecursiveMethode(p_Map, l_NextIter, p_GoThroughWall, p_Iter + 1);
         else
             return p_Map;
     }
 
-    #region Path Reading
+    public Vector2 MoveToNearRandomPos(Vector2 StartPos)
+    {
+        List<Vector2> PossiblePos = new List<Vector2>();
+        DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
+        TILE_TYPE l_Type;
+
+        foreach (DIRECTION l_Direction in l_Directions)
+        {
+            Vector2 l_NextPos = GetNextCellPos(StartPos, l_Direction);
+            if (m_Model.TryGetValue(l_NextPos, out l_Type))
+                if (l_Type == TILE_TYPE.EMPTY)
+                    PossiblePos.Add(l_NextPos);
+        }
+
+        if (PossiblePos.Count > 0)
+        {
+            return PossiblePos[Mathf.FloorToInt(UnityEngine.Random.Range(0, PossiblePos.Count))];
+        }
+        return StartPos;
+    }
+    
     private List<Vector2> ReadPath(Dictionary<Vector2, int> p_PropagationMap, Vector2 p_Origin, Vector2 p_Target)
     {
-        Debug.Log("Start Path Reading");
         if (p_PropagationMap.Count <= 0 || !p_PropagationMap.ContainsKey(p_Target))
-        {
-            Debug.Log("Reading Failed");
             return new List<Vector2>();
-        }
 
         DIRECTION[] l_Directions = (DIRECTION[])Enum.GetValues(typeof(DIRECTION));
 
@@ -350,7 +381,7 @@ public class LevelManager: BaseManager<LevelManager> {
         l_Path.Reverse();
         return l_Path;
     }
-    #endregion
+
     #region Utils
     private Vector2 GetNextCellPos(Vector2 p_CurrentCell, DIRECTION p_Direction)
     {

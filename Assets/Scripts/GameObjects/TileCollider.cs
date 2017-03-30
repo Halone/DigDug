@@ -18,6 +18,8 @@ public class TileCollider: MonoBehaviour {
 
     #region Initialisation & Destroy
     void Awake() {
+        LevelManager.instance.onClearLevel += DestroyTile;
+
         if (m_VerticesPos == null) {
             m_VerticesPos = new List<Vector3>();
 
@@ -125,8 +127,10 @@ public class TileCollider: MonoBehaviour {
         m_Triangles.Clear();
     }
 
-    void OnTriggerEnter(Collider p_Collider) {
+    private void OnTriggerEnter(Collider p_Collider) {
         if (p_Collider.gameObject.tag == TAG_PLAYER)  {
+            print("CollidePlayer");
+            LevelManager.instance.onClearLevel -= DestroyTile;
             if (onTileDestroy != null) onTileDestroy(gameObject.transform.position);
             Destroy(gameObject);
         }
@@ -179,4 +183,11 @@ public class TileCollider: MonoBehaviour {
     }
     #endregion
     #endregion
+
+    private void DestroyTile()
+    {
+        LevelManager.instance.onClearLevel -= DestroyTile;
+        Destroy(gameObject);
+    }
+
 }

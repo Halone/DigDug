@@ -1,0 +1,7 @@
+-Fix Bug Event des Tiles
+
+-Pompage des enemy (Appele Pump dans les enemies)
+
+-Faire des reglages pour avoir plusieurs trous dans la map
+
+-Pas sortir des bounds

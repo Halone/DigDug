@@ -302,7 +302,7 @@ public class MeshCreator: MonoBehaviour {
             JSONObject l_EnemyPosition = new JSONObject(JSONObject.Type.OBJECT);
             l_EnemyPosition.AddField(FIELD_X, Mathf.Round(l_EnemyObj.Key.transform.position.x));
             l_EnemyPosition.AddField(FIELD_Y, Mathf.Round(l_EnemyObj.Key.transform.position.y));
-            print(l_EnemyPosition);
+
             l_EnemyJson.AddField(FIELD_POSITION, l_EnemyPosition);
             l_EnemyJson.AddField(FIELD_TYPE, l_EnemyObj.Value);
 
@@ -317,7 +317,7 @@ public class MeshCreator: MonoBehaviour {
         JSONObject l_PlayerPosition = new JSONObject(JSONObject.Type.OBJECT);
         l_PlayerPosition.AddField(FIELD_X, Mathf.Round(m_PlayerObj.transform.position.x));
         l_PlayerPosition.AddField(FIELD_Y, Mathf.Round(m_PlayerObj.transform.position.y));
-        print(l_PlayerPosition);
+        
         l_PlayerJson.AddField(FIELD_POSITION, l_PlayerPosition);
         l_JsonLevel.AddField(FIELD_PLAYER, l_PlayerJson);
         #endregion
