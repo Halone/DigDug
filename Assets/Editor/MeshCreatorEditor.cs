@@ -22,11 +22,16 @@ public class MeshCreatorEditor : Editor {
     private Texture m_SpritePlayer;
     private bool m_WorldHasBeenGenerated;
     private bool m_WorldHasBeenSaved;
+    private bool m_UnitsHaveBeenPlaced;
+    private string m_SelectedUnit;
 
     public override void OnInspectorGUI() {
         base.OnInspectorGUI();
 
         MeshCreator l_MeshCreator = (MeshCreator)target;
+        GUILayout.Label("");
+        GUILayout.Label("Never Save the scene, pls");
+        GUILayout.Label("");
 
         if (doAction == null) SetModeDisplayTexture();
         doAction();
@@ -69,6 +74,7 @@ public class MeshCreatorEditor : Editor {
     {
         m_Texture1 = Vector3.left;
         m_Texture2 = Vector3.left;
+        m_UnitsHaveBeenPlaced = ((MeshCreator)target).AreUnitsPlaced();
         doAction = DoActionDisplayTexture;
     }
 
@@ -87,6 +93,17 @@ public class MeshCreatorEditor : Editor {
     #region Do Action
     private void DoActionDisplayTexture()
     {
+        if (m_WorldHasBeenSaved ||m_UnitsHaveBeenPlaced)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.Label("Save units positions or ");
+            if (GUILayout.Button("Save")) 
+            {
+                ((MeshCreator)target).SaveLevel();
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+
         GUILayout.Label("Choose 2 Texture for the map !");
         l_Foldout = EditorGUILayout.Foldout(l_Foldout, "Textures");
         if (l_Foldout)
@@ -158,7 +175,7 @@ public class MeshCreatorEditor : Editor {
 
         //Save Map
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button("Save Map"))
+        if (GUILayout.Button("Save"))
         {
             ((MeshCreator)target).SaveLevel();
         }

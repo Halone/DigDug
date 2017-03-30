@@ -245,6 +245,8 @@ public class MeshCreator: MonoBehaviour {
 
     public void AddUnitAt(Vector3 p_HitPos, string p_UnitType)
     {
+        print(p_UnitType);
+        print(m_TypeToEnemy[p_UnitType]);
         GameObject l_Unit = Instantiate<GameObject>(m_TypeToEnemy[p_UnitType]);
         l_Unit.transform.position = p_HitPos;
         m_Enemies.Add(l_Unit, p_UnitType);
@@ -298,9 +300,9 @@ public class MeshCreator: MonoBehaviour {
         {
             JSONObject l_EnemyJson = new JSONObject(JSONObject.Type.OBJECT);
             JSONObject l_EnemyPosition = new JSONObject(JSONObject.Type.OBJECT);
-            l_EnemyPosition.AddField(FIELD_X, l_EnemyObj.Key.transform.position.x);
-            l_EnemyPosition.AddField(FIELD_Y, l_EnemyObj.Key.transform.position.y);
-
+            l_EnemyPosition.AddField(FIELD_X, Mathf.Round(l_EnemyObj.Key.transform.position.x));
+            l_EnemyPosition.AddField(FIELD_Y, Mathf.Round(l_EnemyObj.Key.transform.position.y));
+            print(l_EnemyPosition);
             l_EnemyJson.AddField(FIELD_POSITION, l_EnemyPosition);
             l_EnemyJson.AddField(FIELD_TYPE, l_EnemyObj.Value);
 
@@ -313,14 +315,19 @@ public class MeshCreator: MonoBehaviour {
         #region Player
         JSONObject l_PlayerJson = new JSONObject(JSONObject.Type.OBJECT);
         JSONObject l_PlayerPosition = new JSONObject(JSONObject.Type.OBJECT);
-        l_PlayerPosition.AddField(FIELD_X, m_PlayerMapPos.x);
-        l_PlayerPosition.AddField(FIELD_Y, m_PlayerMapPos.y);
-
+        l_PlayerPosition.AddField(FIELD_X, Mathf.Round(m_PlayerObj.transform.position.x));
+        l_PlayerPosition.AddField(FIELD_Y, Mathf.Round(m_PlayerObj.transform.position.y));
+        print(l_PlayerPosition);
         l_PlayerJson.AddField(FIELD_POSITION, l_PlayerPosition);
         l_JsonLevel.AddField(FIELD_PLAYER, l_PlayerJson);
         #endregion
 
         File.WriteAllText(PATH_JSON_WRITTING + NAME_FILE_LEVEL + PATH_JSON, l_JsonLevel.ToString());
+    }
+
+    public bool AreUnitsPlaced()
+    {
+        return (m_PlayerObj && (m_Enemies.Count > 0));
     }
 }
 

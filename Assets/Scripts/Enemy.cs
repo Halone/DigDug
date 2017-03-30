@@ -36,7 +36,7 @@ public class Enemy : MonoBehaviour {
         else print("Enemy Arrived");
     }
 
-    private IEnumerator Move(Vector2 m_CurrentPos, Vector2 m_Destination, float MoveDuration = 1)
+    private IEnumerator Move(Vector2 m_CurrentPos, Vector2 m_Destination, float MoveDuration = 111)
     {
         Vector2 l_StartPos = m_CurrentPos;
 
