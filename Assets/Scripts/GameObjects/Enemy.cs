@@ -66,7 +66,6 @@ public class Enemy : MonoBehaviour {
             if (m_HuntPlayer)
             {
                 SetDestinationToPlayer();
-                print(m_CurrentPos);
                 GoToNextCell();
             }
             else

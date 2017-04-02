@@ -28,7 +28,6 @@ public class MoveCamera : MonoBehaviour {
 
     private void SetModeFollowPlayer()
     {
-        print("Follow");
         doAction = DoActionFollowPlayer;
     }
 
