@@ -25,9 +25,9 @@ public class ScoreManager: BaseManager<ScoreManager> {
         if (l_JsonScore == null) Debug.LogError(NAME_FILE_SCORE + " not found.");
 
         JSONObject l_ScoreData = new JSONObject(l_JsonScore.ToString());
-        for (int i = 1; i < (NB_HIGHSCORE + 1); i++) {
+        for (int i = 1; i < (NB_HIGHSCORE); i++) {
             JSONObject l_ScoreDatad = l_ScoreData.GetField(i.ToString());
-
+            
             m_HighscoreNames.Add(l_ScoreDatad.GetField(FIELD_NAME).str);
             m_HighscoreScores.Add((int)l_ScoreDatad.GetField(FIELD_SCORE).f);
         }

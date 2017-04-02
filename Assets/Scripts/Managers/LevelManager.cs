@@ -40,12 +40,14 @@ public class LevelManager: BaseManager<LevelManager> {
     private GameObject m_PrefabPlayer;
     private GameObject m_PrefabEnemyPlong;
     private GameObject m_PrefabEnemyDrag;
+    private GameObject m_Player;
     private Vector3 m_PosStartPlayer;
     private uint m_EnemiesCount = 0;
 
     public Action<Dictionary<Vector2, TILE_TYPE>> onUpdateCollider;
     public Action<bool> onAllEnemiesDyed;
     public Action onClearLevel;
+    public Action onGenerationEnd;
     #endregion
 
     #region Initialisation
@@ -95,7 +97,7 @@ public class LevelManager: BaseManager<LevelManager> {
         CreatCollider();
         if (onUpdateCollider != null) onUpdateCollider(m_Model);
         //PLAYER
-        Instantiate(m_PrefabPlayer, m_PosStartPlayer, Quaternion.identity, gameObject.transform);
+        m_Player = (GameObject)Instantiate(m_PrefabPlayer, m_PosStartPlayer, Quaternion.identity, gameObject.transform);
         Player.worldBounds = m_World.bounds;
         //CAMERA
         Camera.main.transform.position  = m_World.bounds.center + Vector3.back * 10;
@@ -171,6 +173,9 @@ public class LevelManager: BaseManager<LevelManager> {
             m_EnemiesCount++;
         }
         #endregion
+
+        if (onGenerationEnd != null)
+            onGenerationEnd();
     }
 
     private void CreatView() {
@@ -284,11 +289,11 @@ public class LevelManager: BaseManager<LevelManager> {
         Dictionary<Vector2, int> l_PropaMap = new Dictionary<Vector2, int>();
         List<Vector2> l_List = new List<Vector2>();
         List<Vector2> l_Path;
-        l_List.Add(m_Pos);
+        Vector2 m_ObjPos = new Vector2(Mathf.Round(m_Pos.x), Mathf.Round(m_Pos.y));
+        l_List.Add(m_ObjPos);
 
         RecursiveMethode(l_PropaMap, l_List, p_GoThroughWall);
-        l_Path = ReadPath(l_PropaMap, new Vector2(Mathf.Floor(m_Pos.x), Mathf.Floor(m_Pos.y)), m_PosStartPlayer);
-
+        l_Path = ReadPath(l_PropaMap, m_ObjPos, new Vector2(Mathf.Round(m_Player.transform.position.x), Mathf.Round(m_Player.transform.position.y)));
         m_Path = l_Path;
         return true;
     }
@@ -407,4 +412,18 @@ public class LevelManager: BaseManager<LevelManager> {
     }
     #endregion
     #endregion
+
+    public bool IsCameraInBounds (out Vector2 p_PlayerPos)
+    {
+        if ((m_Player.transform.position.y + (Screen.height / 2)) > 0)
+        {
+            p_PlayerPos = m_Player.transform.position;
+            return true;
+        }
+        else
+        {
+            p_PlayerPos = new Vector3();
+            return false;
+        }
+    }
 }

@@ -8,7 +8,7 @@ public class Enemy : MonoBehaviour {
     private Action doAction;
 
     private List<Vector2> m_CurrentPath;
-    private Vector2 EndMovePos;
+    private Vector2 m_CurrentPos;
     private int m_CurrentPathIndex = 0;
     private bool m_HuntPlayer = false;
     private bool m_GoToPlayer = false;
@@ -19,18 +19,23 @@ public class Enemy : MonoBehaviour {
     {
         LevelManager.instance.onClearLevel += DestroyUnit;
 
-        EndMovePos = transform.position;
+        m_CurrentPos = transform.position;
         if (SetDestinationToPlayer())
+        {
+            m_HuntPlayer = true;
             GoToNextCell();
-        else Move(EndMovePos, LevelManager.instance.MoveToNearRandomPos(EndMovePos));
-
-        StartCoroutine(WaitBeforeSearchingPlayer(10.0f));
+        }
+        else
+        {
+            StartCoroutine(Move(m_CurrentPos, LevelManager.instance.MoveToNearRandomPos(m_CurrentPos)));
+            StartCoroutine(WaitBeforeSearchingPlayer(10.0f));
+        }
     }
     
     private bool SetDestinationToPlayer(bool p_GoThroughWall = false)
     {
         List<Vector2> m_NewPath;
-        if (EndMovePos != null && LevelManager.instance.GetPath(EndMovePos, out m_NewPath, p_GoThroughWall))
+        if (m_CurrentPos != null && LevelManager.instance.GetPath(m_CurrentPos, out m_NewPath, p_GoThroughWall))
         {
             m_CurrentPath = m_NewPath;
             m_CurrentPathIndex = 0;
@@ -42,6 +47,7 @@ public class Enemy : MonoBehaviour {
 
     private void GoToNextCell()
     {
+        m_CurrentPos = transform.position;
         if (m_GoToPlayer)
         {
             m_GoToPlayer = false;
@@ -49,11 +55,10 @@ public class Enemy : MonoBehaviour {
             SetDestinationToPlayer(true);
             GoToNextCell();
         }
-        else if (m_CurrentPath != null && (m_CurrentPathIndex + 1) <= (m_CurrentPath.Count - 1))
+        else if (m_CurrentPath != null && m_CurrentPath.Count > 0 && (m_CurrentPathIndex + 1) <= (m_CurrentPath.Count - 1))
         {
             StopCoroutine("Move");
-            EndMovePos = m_CurrentPath[m_CurrentPathIndex + 1];
-            StartCoroutine(Move(m_CurrentPath[m_CurrentPathIndex], EndMovePos));
+            StartCoroutine(Move(m_CurrentPos, m_CurrentPath[m_CurrentPathIndex + 1]));
             m_CurrentPathIndex++;
         }
         else
@@ -61,9 +66,13 @@ public class Enemy : MonoBehaviour {
             if (m_HuntPlayer)
             {
                 SetDestinationToPlayer();
+                print(m_CurrentPos);
                 GoToNextCell();
             }
-            else Move(EndMovePos, LevelManager.instance.MoveToNearRandomPos(EndMovePos));
+            else
+            {
+                Move(m_CurrentPos, LevelManager.instance.MoveToNearRandomPos(m_CurrentPos));
+            }
         }
     }
 
@@ -88,6 +97,7 @@ public class Enemy : MonoBehaviour {
         m_GoToPlayer = true;
     }
 
+    #region Pump
     private IEnumerator Degonfle(float WaitingDuration)
     {
         yield return new WaitForSeconds(WaitingDuration);
@@ -98,18 +108,21 @@ public class Enemy : MonoBehaviour {
     private void CheckPumpState()
     {
         StopCoroutine("Degonfle");
-        if (m_CurrentPumpState >= 3)
-            Die();
-        else
-            if (m_CurrentPumpState > 0)
+        if (m_CurrentPumpState > 0)
                 StartCoroutine(Degonfle(3));
     }
 
     public void PumpEnemy() {
         m_CurrentPumpState++;
-        StopCoroutine("Degonfle");
-        StartCoroutine(Degonfle(3));
+        if (m_CurrentPumpState >= 3)
+            Die();
+        else
+        {
+            StopCoroutine("Degonfle");
+            StartCoroutine(Degonfle(3));
+        }
     }
+    #endregion
 
     private void Die()
     {
