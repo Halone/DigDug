@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using UnityEngine;
 
 public class GameManager: Singleton<GameManager> {
     #region Variables
@@ -13,25 +14,25 @@ public class GameManager: Singleton<GameManager> {
     #region Initialisation & Destroy
     protected override IEnumerator CoroutineStart() {
         while (
-            UIManager.instance == null && 
-            ScoreManager.instance == null &&
-            LevelManager.instance == null &&
+            UIManager.instance == null || 
+            ScoreManager.instance == null ||
+            LevelManager.instance == null ||
             SoundsManager.instance == null
         ) yield return false;
 
         while (
-            !UIManager.instance.isReady && 
-            !ScoreManager.instance.isReady &&
-            !LevelManager.instance.isReady &&
+            !UIManager.instance.isReady || 
+            !ScoreManager.instance.isReady ||
+            !LevelManager.instance.isReady ||
             !SoundsManager.instance.isReady
         ) yield return false;
-
+        
         Init();
 
         while (
-            !UIManager.instance.isInit &&
-            !ScoreManager.instance.isInit &&
-            !LevelManager.instance.isInit &&
+            !UIManager.instance.isInit ||
+            !ScoreManager.instance.isInit ||
+            !LevelManager.instance.isInit ||
             !SoundsManager.instance.isInit
         ) yield return false;
 

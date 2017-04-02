@@ -67,14 +67,15 @@ public class LevelManager: BaseManager<LevelManager> {
 
         m_TypeToEnemy.Add(NAME_FILE_ENEMY_PLONG, m_PrefabEnemyPlong);
         m_TypeToEnemy.Add(NAME_FILE_ENEMY_DRAG, m_PrefabEnemyDrag);
+
         yield return true;
         isReady = true;
     }
 
     protected override void Init() {
         m_EnemiesCount = 0;
-        Enemy.onDie += CheckEnemiesDeath;
-        TileCollider.onTileDestroy += UpdateMap;
+        Enemy.onDie                 += CheckEnemiesDeath;
+        TileCollider.onTileDestroy  += UpdateMap;
         base.Init();
     }
     #endregion
@@ -107,11 +108,9 @@ public class LevelManager: BaseManager<LevelManager> {
         if (onUpdateCollider != null) onUpdateCollider(m_Model);
     }
 
-    private void CheckEnemiesDeath()
-    {
+    private void CheckEnemiesDeath() {
         m_EnemiesCount--;
-        if (m_EnemiesCount <= 0 && onAllEnemiesDyed != null)
-            onAllEnemiesDyed(true);
+        if (m_EnemiesCount <= 0 && onAllEnemiesDyed != null) onAllEnemiesDyed(true);
     }
 
     #region Map Managment
