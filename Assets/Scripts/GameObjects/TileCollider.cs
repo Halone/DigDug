@@ -129,7 +129,6 @@ public class TileCollider: MonoBehaviour {
 
     private void OnTriggerEnter(Collider p_Collider) {
         if (p_Collider.gameObject.tag == TAG_PLAYER)  {
-            Debug.Log("collide player : " + gameObject.transform.position.x + "_" + gameObject.transform.position.y);
             if (onTileDestroy != null) onTileDestroy(gameObject.transform.position);
             Destroy(gameObject);
         }

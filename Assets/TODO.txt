@@ -1,7 +1,6 @@
--Fix Bug Event des Tiles
+TODO:
+-Corriger IA
 
--Pompage des enemy (Appele Pump dans les enemies)
-
--Faire des reglages pour avoir plusieurs trous dans la map
-
--Pas sortir des bounds
+NTH:
+-LD
+-Suivis caméra en fonction du Y du player

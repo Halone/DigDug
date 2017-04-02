@@ -38,15 +38,16 @@ public class UIManager : BaseManager<UIManager> {
     
     #region Init & Base Methodes
     protected override IEnumerator CoroutineStart() {
-        isReady = true;
         yield return true;
+        isReady = true;
     }
-    protected override void Init()
-    {
+
+    protected override void Init() {
+        Player.onDeath                          += ShowEndScreen;
+        LevelManager.instance.onAllEnemiesDyed  += ShowEndScreen;
         base.Init();
-        Player.onDeath += ShowEndScreen;
-        LevelManager.instance.onAllEnemiesDyed += ShowEndScreen;
     }
+
     protected override void Menu() {
         ChangeScreen(MainScreen);
     }

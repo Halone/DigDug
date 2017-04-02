@@ -96,6 +96,7 @@ public class LevelManager: BaseManager<LevelManager> {
         if (onUpdateCollider != null) onUpdateCollider(m_Model);
         //PLAYER
         Instantiate(m_PrefabPlayer, m_PosStartPlayer, Quaternion.identity, gameObject.transform);
+        Player.worldBounds = m_World.bounds;
         //CAMERA
         Camera.main.transform.position  = m_World.bounds.center + Vector3.back * 10;
         Camera.main.orthographicSize    = Mathf.Min(m_MapSizeX, m_MapSizeY) / 2;
@@ -247,10 +248,8 @@ public class LevelManager: BaseManager<LevelManager> {
     }
 
     private void UpdateMap(Vector2 p_Pos) {
-        print("Update map");
         if (m_Model.ContainsKey(p_Pos)) {
             m_Model[p_Pos] = TILE_TYPE.EMPTY;
-            Debug.Log(m_Model[p_Pos]);
             UpdateWorld();
         }
     }
@@ -408,12 +407,4 @@ public class LevelManager: BaseManager<LevelManager> {
     }
     #endregion
     #endregion
-}
-
-public enum DIRECTION
-{
-    UP,
-    RIGHT,
-    BOTTOM,
-    LEFT
 }

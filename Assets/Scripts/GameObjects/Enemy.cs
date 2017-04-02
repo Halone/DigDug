@@ -105,8 +105,7 @@ public class Enemy : MonoBehaviour {
                 StartCoroutine(Degonfle(3));
     }
 
-    public void PumpEnemy()
-    {
+    public void PumpEnemy() {
         m_CurrentPumpState++;
         StopCoroutine("Degonfle");
         StartCoroutine(Degonfle(3));
